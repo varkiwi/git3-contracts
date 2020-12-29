@@ -9,30 +9,48 @@ pragma experimental ABIEncoderV2;
 * 
 /******************************************************************************/
 
+import "./GitFactory.sol";
 import "./libraries/LibDiamond.sol";
 import "./interfaces/IDiamondLoupe.sol";
 import "./interfaces/IDiamondCut.sol";
-// import "./interfaces/IERC173.sol";
-// import "./interfaces/IERC165.sol";
+import "./interfaces/IERC173.sol";
+import "./interfaces/IERC165.sol";
 
 contract GitRepository {
     // more arguments are added to this struct
     // this avoids stack too deep errors
     struct DiamondArgs {
         address owner;
+        GitFactory factory;
+        string name; 
+        uint userIndex;
+        uint repoIndex;
     }
 
     constructor(IDiamondCut.FacetCut[] memory _diamondCut, DiamondArgs memory _args) payable {
         LibDiamond.diamondCut(_diamondCut, address(0), new bytes(0));
         LibDiamond.setContractOwner(_args.owner);
+        LibDiamond.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex);
 
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
 
-        // // adding ERC165 data
-        // ds.supportedInterfaces[type(IERC165).interfaceId] = true;
+        // adding ERC165 data
+        ds.supportedInterfaces[type(IERC165).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
-        // ds.supportedInterfaces[type(IERC173).interfaceId] = true;
+        ds.supportedInterfaces[type(IERC173).interfaceId] = true;
+    }
+
+    function updateUserIndex(uint256 _newUserIndex) public {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        require(msg.sender == address(ds.factory), 'You are not allowd to perform this action');
+        ds.userIndex = _newUserIndex;
+    }
+    
+    function updateRepoIndex(uint256 _newRepoIndex) public {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        require(msg.sender == address(ds.factory), 'You are not allowd to perform this action');
+        ds.repoIndex = _newRepoIndex;
     }
 
     // Find facet for function that is called and execute the
@@ -43,7 +61,7 @@ contract GitRepository {
         assembly {
             ds.slot := position
         }
-        address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
+        address facet = address(bytes20(ds.facetAddressAndSelectorPosition[msg.sig].facetAddress));
         require(facet != address(0), "Diamond: Function does not exist");
         assembly {
             calldatacopy(0, 0, calldatasize())

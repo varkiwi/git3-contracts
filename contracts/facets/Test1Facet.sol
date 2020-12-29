@@ -6,7 +6,6 @@ library LibA {
 
   // This struct contains state variables we care about.
   struct DiamondStorage {
-    address owner;
     uint dataA;
   }
 
