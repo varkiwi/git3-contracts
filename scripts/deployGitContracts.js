@@ -31,24 +31,31 @@ async function deployContract(contractName, args) {
 async function main() {
     const diamondCutFacet = await deployContract("DiamondCutFacet");
     const diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
+    const gitRepoManagementFacet = await deployContract("GitRepositoryManagement");
     const deployer = await deployContract("Deployer");
 
     await diamondCutFacet.deployed();
     await diamondLoupeFacet.deployed();
     await deployer.deployed();
+    await gitRepoManagementFacet.deployed();
 
     console.log("DiamondCutFacet's address is:", diamondCutFacet.address);
     console.log("DiamondLoupeFacet's address is:", diamondLoupeFacet.address);
     console.log("Deployer's address is:", deployer.address);
+    console.log("GitRepoManagementFacet's address is:", gitRepoManagementFacet.address);
 
     const diamondCut = [
       [diamondCutFacet.address, FacetCutAction.Add, getSelectors(diamondCutFacet.functions)],
-      [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)]
+      [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)],
+      [gitRepoManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepoManagementFacet.functions)]
     ];
 
-    const accounts = await hre.ethers.getSigners()
 
     const gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
+    // console.log('Filter:', gitFactory.filters.Test());
+    // let logs = await ethers.provider.getLogs(gitFactory.filters.Test());
+    // console.log('Logs', logs[0].data);
+    // console.log('Logs', logs[1].data);
     await gitFactory.deployed();
     console.log("GitFactory's address:", gitFactory.address);
     // console.log("GitFactory's owner: ", await gitFactory.owner());
@@ -57,17 +64,29 @@ async function main() {
     await gitFactory.createRepository("TestRepo");
     console.log("Repo names:", await gitFactory.getRepositoryNames());
 
-    // // We get the contract to deploy
+    const accounts = await hre.ethers.getSigners()
+    let r = await gitFactory.getUserRepoNameHash(accounts[0].address, "TestRepo");
+    r = await gitFactory.getRepository(r);
+    console.log('>>', r);
+    const gitRepoFactory = await hre.ethers.getContractFactory("GitRepositoryManagement");
+    const gitRepo = await gitRepoFactory.attach(r.location);
+    r = await gitRepo.getRepositoryInfo();
+    console.log(r);
+    // const gitManagementFactory = await hre.ethers.getContractFactory("GitRepositoryManagement");
+    // const gitManagement = await gitManagementFactory.attach(r.location);
+    // r = await gitManagement.getRepositoryInfo();
+    // console.log(r)
+    // We get the contract to deploy
     // const gitRepository = await deployContract("GitRepository", [diamondCut, [accounts[0].address]]);
     // await gitRepository.deployed();
 
     // console.log("GitRepository's address to:", gitRepository.address);
-    // // -----------------------------------------------------------------------------------------------------------------
-    // // DEPLOYMENT DONE - NOW TESTING
+    // -----------------------------------------------------------------------------------------------------------------
+    // DEPLOYMENT DONE - NOW TESTING
 
     // // GETTING FACET ADDRESSES
     // const diamondCutFactory = await hre.ethers.getContractFactory("DiamondCutFacet");
-    // // setting the proxies address for the contract, since we will go through the proxy!
+    // setting the proxies address for the contract, since we will go through the proxy!
     // const diamondCutContract = await diamondCutFactory.attach(gitRepository.address);
 
     // const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");

@@ -53,6 +53,7 @@ contract GitFactory is Ownable {
                 repoIndex: _repoData.usersRepoList[msg.sender].length
             })
         );
+
         LibGitFactory.initRepository(_repoData, key, _repoName, newGitRepo, msg.sender);
         emit NewRepositoryCreated(_repoName, msg.sender);
     }
@@ -65,13 +66,12 @@ contract GitFactory is Ownable {
      * 
      * This function should be called only by GitRepository contracts.
      * 
-     * @param _owner (address) - Owner of the repository to be removed
      * @param _repoName (string) - The name of the repository to be removed
      * @param _userIndex (uint256) - The position the of the repositories owner in the reposUserList
      * @param _repoName (uint256) - The position of the repositories name in the usersRepoList
      */
-    function removeRepository(address _owner, string memory _repoName, uint256 _userIndex, uint256 _repoIndex) public {
-        LibGitFactory.removeRepository(_repoData, _owner, _repoName, _userIndex, _repoIndex);
+    function removeRepository(string memory _repoName, uint256 _userIndex, uint256 _repoIndex) public {
+        LibGitFactory.removeRepository(_repoData, msg.sender, _repoName, _userIndex, _repoIndex);
     }
     
     /**
@@ -124,6 +124,55 @@ contract GitFactory is Ownable {
      */
     function getUserRepoNameHash(address _owner, string memory _repoName) pure public returns (bytes32) {
         return LibGitFactory.getUserRepoNameHash(_owner, _repoName);
+    }
+
+    /**
+     * This function returns a Repository struct which contains the address of the contract representing a 
+     * git repository and if it is active.
+     * 
+     * @param location (bytes32) - Location of the git repository information. Location := keccak(owner, repo name)
+     * 
+     * @return (LibGitFactory.Repository) - The repository struct
+     */
+    function getRepository(bytes32 location) view public returns (LibGitFactory.Repository memory) {
+        return LibGitFactory.getRepository(_repoData, location);
+    }
+
+    /**
+     * Allows to add a facet contract which is used to add to every new created git repository contract.
+     *
+     * @param _diamondCut (IDiamondCut.FacetCut) - FacetCut struct with the information of the new facet contract
+     */
+    function addFacet(IDiamondCut.FacetCut memory _diamondCut) public onlyOwner {
+        diamondCuts.push(_diamondCut);
+    }
+
+    /**
+     * Allows to remove a facet contract. Whenever a new git repository is created, this facet won't be added to it.
+     * All git repositorys which had been deployed before this function call, will still have the facet. It needs to be
+     * removed manually.
+     *
+     * @param index (uint) - Index of the facet which should be reomved from the diamondCuts list
+     */
+    function removeFacet(uint index) public onlyOwner {
+        require(index < diamondCuts.length, "Index out of bounds");
+        if (index == diamondCuts.length - 1) {
+            diamondCuts.pop();
+        } else {
+            diamondCuts[index] = diamondCuts[diamondCuts.length - 1];
+            diamondCuts.pop();
+        }
+    }
+
+    /**
+     * This function is used to replace a facet contract at the given index in the diamondCuts list.
+     *
+     * @param _diamondCut (IDiamondCut.FacetCut) - The new facet contract information
+     * @param index (uint) - The index in the diamondCuts list which is replaced with the new facet
+     */
+    function replaceFacet(IDiamondCut.FacetCut memory _diamondCut, uint index) public onlyOwner {
+        require(index < diamondCuts.length, "Index out of bounds");
+        diamondCuts[index] = _diamondCut;
     }
     
     /**

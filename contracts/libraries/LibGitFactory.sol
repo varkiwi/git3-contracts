@@ -3,6 +3,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "../GitRepository.sol";
+import "../facets/GitRepositoryManagement.sol";
 
 library LibGitFactory {
     struct Repository {
@@ -105,8 +106,12 @@ library LibGitFactory {
 
         // check if the key has already an active repository
         require(self.repositoryList[key].isActive, "Repository doesn't exist");
-        // that works. We will add that later in again
-        require(address(self.repositoryList[key].location) == owner, 'You are not allowed to perform this action');
+        GitRepositoryManagement repoToDelete = GitRepositoryManagement(address(self.repositoryList[key].location));
+        uint _userIndex; 
+        uint _repoIndex;
+        (, , , _userIndex, _repoIndex) = repoToDelete.getRepositoryInfo();
+        require(userIndex == _userIndex, "User Index value is not correct");
+        require(repoIndex == _repoIndex, "Repo Index value is not correct");
 
         uint256 reposUserListLenght = self.reposUserList[repoName].length;
         if ((userIndex + 1) == reposUserListLenght) {
@@ -121,7 +126,9 @@ library LibGitFactory {
             self.reposUserList[repoName][userIndex] = lastEntry;
             // We also have to update the underlying repository value get the key for the moved repository 
             bytes32 key2 = getUserRepoNameHash(lastEntry, repoName);
-            GitRepository movedGitRepo = self.repositoryList[key2].location;
+            // we require here the GitRepositoryManagement contract with the address of the GitRepository in order
+            // to call the updateUserIndex function throught GitRepositry's fallback function
+            GitRepositoryManagement movedGitRepo = GitRepositoryManagement(address(self.repositoryList[key2].location));
             // and update the user index
             movedGitRepo.updateUserIndex(userIndex);
         }
@@ -137,7 +144,9 @@ library LibGitFactory {
             self.usersRepoList[owner][repoIndex] = lastEntry;
             // We also have to update the underlying repository value get the key for the moved repository 
             bytes32 key2 = getUserRepoNameHash(owner, lastEntry);
-            GitRepository movedGitRepo = self.repositoryList[key2].location;
+            // we require here the GitRepositoryManagement contract with the address of the GitRepository in order
+            // to call the updateRepoIndex function throught GitRepositry's fallback function
+            GitRepositoryManagement movedGitRepo = GitRepositoryManagement(address(self.repositoryList[key2].location));
             // and update the user index
             movedGitRepo.updateRepoIndex(repoIndex);
         }
@@ -146,10 +155,13 @@ library LibGitFactory {
         if (self.reposUserList[repoName].length == 0) {
             self.activeRepository[repoName].isActive = false;
             uint256 index = self.activeRepository[repoName].index;
-            delete self.repositoryNames[index];
-            string memory name = self.repositoryNames[self.repositoryNames.length - 1];
-            self.repositoryNames[index] = name;
-            self.activeRepository[name].index = index;
+            if (index != self.repositoryNames.length - 1) {
+                delete self.repositoryNames[index];
+                string memory name = self.repositoryNames[self.repositoryNames.length - 1];
+                self.repositoryNames[index] = name;
+                self.activeRepository[name].index = index;
+            }
+            self.repositoryNames.pop();
         }
         
         // we still need to deactive the repo and update the entries for the moved repo
@@ -166,6 +178,10 @@ library LibGitFactory {
      */
     function getUserRepoNameHash(address _owner, string memory _repoName) pure internal returns (bytes32) {
         return keccak256(abi.encode(_owner, _repoName));
+    }
+
+    function getRepository(Data storage self, bytes32 location) view internal returns (Repository memory) {
+        return self.repositoryList[location];
     }
 
     /**
