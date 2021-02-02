@@ -75,6 +75,10 @@ library LibDiamond {
         require(msg.sender == repositoryInformation().contractOwner, "LibD: Must be contract owner");
     }
 
+    function enforceIsFactory() internal view {
+        require(msg.sender == address(repositoryInformation().factory), "LibD: Must be factory");
+    }
+
     // Internal function version of diamondCut
     function diamondCut(
         IDiamondCut.FacetCut[] memory _diamondCut,

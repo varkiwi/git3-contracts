@@ -36,6 +36,11 @@ contract GitRepositoryManagement {
         }
     }
 
+    function getRepositoryInfo() public view returns (address contractOwner, GitFactory factory, string memory name, uint userIndex, uint repoIndex) {
+        RepositoryInformation storage ri = repositoryInformation();
+        return (ri.contractOwner, ri.factory, ri.name, ri.userIndex, ri.repoIndex);
+    }
+
     function updateUserIndex(uint256 _newUserIndex) public {
         RepositoryInformation storage ri = repositoryInformation();
         require(msg.sender == address(ri.factory), 'You are not allowd to perform this action');
@@ -47,9 +52,4 @@ contract GitRepositoryManagement {
         require(msg.sender == address(ri.factory), 'You are not allowd to perform this action');
         ri.repoIndex = _newRepoIndex;
     }  
-
-    function getRepositoryInfo() public view returns (address contractOwner, GitFactory factory, string memory name, uint userIndex, uint repoIndex) {
-        RepositoryInformation storage ri = repositoryInformation();
-        return (ri.contractOwner, ri.factory, ri.name, ri.userIndex, ri.repoIndex);
-    }
 }

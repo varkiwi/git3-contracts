@@ -29,7 +29,6 @@ contract GitRepository {
 
     constructor(IDiamondCut.FacetCut[] memory _diamondCut, DiamondArgs memory _args) payable {
         LibDiamond.diamondCut(_diamondCut, address(0), new bytes(0));
-        // LibDiamond.setContractOwner(_args.owner);
         LibDiamond.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex, _args.owner);
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
 
