@@ -329,9 +329,6 @@ describe("Testing GitFactory", function() {
       const location = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, ownerRepos[0]);
       //get information about repository information
       const repositoryInfo = await gitFactory.getRepository(location);
-      //get the diamond loupe contract so that we can check how many facets there are
-      const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-      const diamondLoupe = await diamondLoupeFactory.attach(repositoryInfo.location);
       
       // TODO: There we go 
       updatedContract = await deployContract("GitRepositoryManagementUpdated");
@@ -343,8 +340,6 @@ describe("Testing GitFactory", function() {
         "0x0000000000000000000000000000000000000000",
         "0x"
       )).to.be.revertedWith("Ownable: caller is not the owner");
-      // facets = await diamondLoupe.facets();
-      // expect(facets.length).to.be.equal(3);
     });
 
   });
