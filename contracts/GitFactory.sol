@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "./Deployer.sol";
 import "./GitRepository.sol";
+import "./facets/DiamondCutFacet.sol";
 import "./Ownable.sol";
 import "./interfaces/IDiamondCut.sol";
 import "./libraries/LibGitFactory.sol";
@@ -173,6 +174,24 @@ contract GitFactory is Ownable {
     function replaceFacet(IDiamondCut.FacetCut memory _diamondCut, uint index) public onlyOwner {
         require(index < diamondCuts.length, "Index out of bounds");
         diamondCuts[index] = _diamondCut;
+    }
+
+    /**
+     * This function is used to updated the facets of already deployed Git Repositories
+     *
+     * @param reposAddress (address) - The address of the git repository to be updated
+     * @param _diamondCut (IDiamondCut.FacetCut) - The new facet contract information
+     * @param _init //TODO: Check out this parameter in regards the diamond spec
+     * @param _calldata //TODO: Check out this parameter in regards the diamond spec
+     */
+    function updateRepositoriesFacets(
+        address reposAddress,
+        IDiamondCut.FacetCut[] calldata _diamondCut,
+        address _init,
+        bytes calldata _calldata
+    ) public onlyOwner {
+        DiamondCutFacet repo = DiamondCutFacet(reposAddress);
+        repo.diamondCut(_diamondCut, _init, _calldata);
     }
     
     /**

@@ -132,6 +132,23 @@ describe("Testing Git Repository", function() {
         };
       });
     });
+
+    describe("Testing supportsInterface function", function() {
+      it("Checking for unavailable interface", async function() {
+        const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
+        const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
+        const supportsInterface = await diamondLoupe.supportsInterface('0xaabbccdd');
+        expect(supportsInterface).to.be.equal(false);
+      });
+
+      it("Checking for available interface", async function() {
+        const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
+        const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
+        //0x01ffc9a7 is ERC165 interface
+        const supportsInterface = await diamondLoupe.supportsInterface('0x01ffc9a7');
+        expect(supportsInterface).to.be.equal(true);
+      });
+    });
   });
   
   describe("Testing DiamondCutFacet of GitRepository", function(){
