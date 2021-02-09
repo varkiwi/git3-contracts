@@ -1,41 +1,12 @@
 const { expect } = require("chai");
-const web3Abi = require("web3-eth-abi");
 const { waffle } = require("hardhat");
 const provider = waffle.provider;
 
 const { getDiamondCuts } = require("./utils/getDiamondCuts");
+const { deployContract } = require("./utils/deployContract");
+const { getSelectors } = require("./utils/getSelectors");
+const { FacetCutAction} = require("./utils/facetCutAction");
 
-const FacetCutAction = {
-  Add: 0,
-  Replace: 1,
-  Remove: 2
-}
-
-function getSelectors(contractFunctions, output=false) {
-  selectors = [];
-  for (func in contractFunctions) {
-    // we have to add the c_0x part for the solidity-coverage plugin, since it instruments the code and adds a function
-    // starting with c_0x and random hex values
-    if (func.includes('(') && !func.includes('c_0x')) {
-      if(output) {
-        console.log('func', func);
-      }
-      selectors.push(web3Abi.encodeFunctionSignature(func));
-    }
-  };
-  return selectors;
-}
-
-async function deployContract(contractName, args) {
-  const contractFactory = await ethers.getContractFactory(contractName);
-  let contractInstance;
-  if (args !== undefined) {
-    contractInstance = await contractFactory.deploy(...args);
-  } else {
-    contractInstance = await contractFactory.deploy();
-  }
-  return contractInstance;
-}
 
 describe("Testing GitFactory", function() {
   const repoName = "TestRepo";
@@ -44,6 +15,7 @@ describe("Testing GitFactory", function() {
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
   let gitFactory, diamondCutFacet, diamondLoupeFacet, gitRepositoryManagementFacet, deployer;
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
 
   before(async function(){
     ACCOUNTS = await ethers.getSigners()
@@ -127,7 +99,7 @@ describe("Testing GitFactory", function() {
     });
   })
 
-  describe("Testing facets", async function() {
+  describe("Testing facets", function() {
     it("Should contain 2 facets", async function(){
       const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
       const gitRepositoryLocation = await gitFactory.getRepository(userRepoNameHash);
@@ -266,7 +238,7 @@ describe("Testing GitFactory", function() {
       await gitFactory.updateRepositoriesFacets(
         repositoryInfo.location,
         [[gitRepositoryManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepositoryManagementFacet.functions)]],
-        "0x0000000000000000000000000000000000000000",
+        zeroAddress,
         "0x"
       );
       facets = await diamondLoupe.facets();
@@ -291,7 +263,7 @@ describe("Testing GitFactory", function() {
       await gitFactory.updateRepositoriesFacets(
         repositoryInfo.location,
         [[updatedContract.address, FacetCutAction.Replace, getSelectors(updatedContract.functions)]],
-        "0x0000000000000000000000000000000000000000",
+        zeroAddress,
         "0x"
       );
       facets = await diamondLoupe.facets();
@@ -316,8 +288,8 @@ describe("Testing GitFactory", function() {
       // adding a new facet to a deployed repository
       await gitFactory.updateRepositoriesFacets(
         repositoryInfo.location,
-        [["0x0000000000000000000000000000000000000000", FacetCutAction.Remove, getSelectors(updatedContract)]],
-        "0x0000000000000000000000000000000000000000",
+        [[zeroAddress, FacetCutAction.Remove, getSelectors(updatedContract)]],
+        zeroAddress,
         "0x"
       );
       facets = await diamondLoupe.facets();
@@ -336,15 +308,15 @@ describe("Testing GitFactory", function() {
       // adding a new facet to a deployed repository
       await expect(gitFactory.connect(ACCOUNTS[1]).updateRepositoriesFacets(
         repositoryInfo.location,
-        [["0x0000000000000000000000000000000000000000", FacetCutAction.Remove, getSelectors(updatedContract)]],
-        "0x0000000000000000000000000000000000000000",
+        [[zeroAddress, FacetCutAction.Remove, getSelectors(updatedContract)]],
+        zeroAddress,
         "0x"
       )).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
   });
 
-  describe("Testing GitRepository information functions", async function() {
+  describe("Testing GitRepository information functions", function() {
 
     it("Check registered repository names", async function() {
       const repoNames = await gitFactory.getRepositoryNames();
@@ -368,7 +340,7 @@ describe("Testing GitFactory", function() {
     })
   });
 
-  describe("Test removing GitRepository", async function() {
+  describe("Test removing GitRepository", function() {
     const repoUserMapping = {};
 
     beforeEach(async function() {
@@ -384,6 +356,7 @@ describe("Testing GitFactory", function() {
   
       gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
       await gitFactory.deployed();
+      // console.log(gitFactory.address);
       
       await gitFactory.createRepository(repoName);
       await gitFactory.connect(ACCOUNTS[1]).createRepository(repoName);
@@ -447,9 +420,8 @@ describe("Testing GitFactory", function() {
 
     it("Deleting a repository", async function() {
       // const gitRepoFactory = await ethers.getContractFactory("GitRepositoryManagement");
-
       const repoInfo = await repoUserMapping[newRepoName][0].getRepositoryInfo();
-      gitFactory.removeRepository(newRepoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
+      await gitFactory.removeRepository(newRepoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
 
       let userRepoHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, newRepoName);
       let repository = await gitFactory.getRepository(userRepoHash);
@@ -528,7 +500,7 @@ describe("Testing GitFactory", function() {
     });
   });
 
-  describe("Test sending and collecting tips", async function() {
+  describe("Test sending and collecting tips", function() {
     it("Send ether to gitFactory", async function() {
       const userBalance = await provider.getBalance(DEFAULT_ACCOUNT_ADDRESS);
       const tip = ethers.BigNumber.from(1337);
@@ -560,6 +532,35 @@ describe("Testing GitFactory", function() {
 
       const expectedBalance = userBalance.sub(receipt.gasPrice.mul(txReceipt.cumulativeGasUsed)).add(ethers.BigNumber.from(1337));
       expect(expectedBalance).to.be.equal(newUserBalance);
+    });
+  });
+
+  describe("Testing Ownable functions", function() {
+    it("Test transferOwnership function", async function() {
+      const currentOwner = await gitFactory.owner();
+      const newOwner = ACCOUNTS[1].address;
+      await gitFactory.transferOwnership(newOwner);
+      expect(await gitFactory.owner()).to.be.equal(newOwner);
+      //switching back to the previous owner :)
+      await gitFactory.connect(ACCOUNTS[1]).transferOwnership(currentOwner);
+    });
+
+    it("Testing that non-owner is not able to transfer ownership", async function() {
+      const newOwner = ACCOUNTS[1].address;
+      await expect(gitFactory.connect(ACCOUNTS[1]).transferOwnership(newOwner)).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("Testing that zero address is rejected", async function() {
+      await expect(gitFactory.transferOwnership(zeroAddress)).to.be.revertedWith("Ownable: new owner is the zero address");
+    });
+
+    it("Testing that renounceOwnership function can't be called by non-owner address", async function() {
+      await expect(gitFactory.connect(ACCOUNTS[1]).renounceOwnership()).to.be.revertedWith("Ownable: caller is not the owner");
+    });
+
+    it("Testing that renounceOwnership function can be called by owner", async function() {
+      await gitFactory.renounceOwnership();
+      await expect(await gitFactory.owner()).to.be.equal(zeroAddress);
     });
   });
 });

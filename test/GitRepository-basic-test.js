@@ -1,40 +1,11 @@
 const { expect, assert } = require("chai");
-const web3Abi = require("web3-eth-abi");
-const { waffle } = require("hardhat");
-const provider = waffle.provider;
 
-const { getDiamondCuts } = require("./utils/getDiamondCuts");
-
-const FacetCutAction = {
-  Add: 0,
-  Replace: 1,
-  Remove: 2
-}
-
-function getSelectors(contractFunctions) {
-  selectors = [];
-  for (func in contractFunctions) {
-    if (func.includes('(')) {
-      selectors.push(web3Abi.encodeFunctionSignature(func));
-    }
-  };
-  return selectors;
-}
-
-async function deployContract(contractName, args) {
-  const contractFactory = await ethers.getContractFactory(contractName);
-  let contractInstance;
-  if (args !== undefined) {
-    contractInstance = await contractFactory.deploy(...args);
-  } else {
-    contractInstance = await contractFactory.deploy();
-  }
-  return contractInstance;
-}
+const { deployContract } = require("./utils/deployContract");
+const { getSelectors } = require("./utils/getSelectors");
+const { FacetCutAction} = require("./utils/facetCutAction");
 
 describe("Testing Git Repository", function() {
   const repoName = "TestRepo";
-  const newRepoName = `${repoName}-2`;
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
@@ -158,10 +129,10 @@ describe("Testing Git Repository", function() {
         const diamondCut = await diamondCutFactory.attach(gitRepositoryLocation.location);
 
         //TODO: have to change to a different contract, since Greeter is going to be removed from the repo!
-        let test1facetFacet = await deployContract("Greeter", ['Hello']);
-        await test1facetFacet.deployed();
+        let greeter = await deployContract("Greeter", ['Hello']);
+        await greeter.deployed();
         diamondCutParam = [
-          [test1facetFacet.address, FacetCutAction.Add, getSelectors(test1facetFacet.functions)]
+          [greeter.address, FacetCutAction.Add, getSelectors(greeter.functions)]
         ];
 
         await expect(diamondCut.diamondCut(
@@ -176,10 +147,10 @@ describe("Testing Git Repository", function() {
         const diamondCut = await diamondCutFactory.attach(gitRepositoryLocation.location);
 
         //TODO: have to change to a different contract, since Greeter is going to be removed from the repo!
-        let test1facetFacet = await deployContract("Greeter", ['Hello']);
-        await test1facetFacet.deployed();
+        let greeter = await deployContract("Greeter", ['Hello']);
+        await greeter.deployed();
         diamondCutParam = [
-          [test1facetFacet.address, FacetCutAction.Add, getSelectors(test1facetFacet.functions)]
+          [greeter.address, FacetCutAction.Add, getSelectors(greeter.functions)]
         ];
 
         await expect(diamondCut.connect(ACCOUNTS[1]).diamondCut(
