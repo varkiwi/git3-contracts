@@ -14,7 +14,7 @@ library LibDiamond {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
-    bytes32 constant REPO_INFO_POSITION = keccak256("diamond.standard.repository.information");
+    bytes32 constant REPO_INFO_POSITION = keccak256("diamond.standard.git.repositoryInformation");
 
     struct FacetAddressAndSelectorPosition {
         address facetAddress;

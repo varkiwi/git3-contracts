@@ -8,7 +8,7 @@ import "../GitFactory.sol";
 // and functionSelectors set with the function selectors to replace. Set the action enum to Replace.
 
 contract GitRepositoryManagementUpdated {
-    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.repository.information");
+    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.git.repositoryInformation");
 
     struct FacetAddressAndSelectorPosition {
         address facetAddress;

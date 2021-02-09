@@ -4,7 +4,7 @@ pragma solidity ^0.7.6;
 import "../GitFactory.sol";
 
 contract GitRepositoryManagement {
-    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.repository.information");
+    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.git.repositoryInformation");
 
     struct FacetAddressAndSelectorPosition {
         address facetAddress;
