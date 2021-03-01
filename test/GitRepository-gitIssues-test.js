@@ -1,19 +1,29 @@
-// const { expect, assert } = require("chai");
-// const web3Abi = require("web3-eth-abi");
+const { expect, assert } = require("chai");
 const { waffle } = require("hardhat");
-// const provider = waffle.provider;
+const { isCallTrace } = require("hardhat/internal/hardhat-network/stack-traces/message-trace");
 
-// const { getDiamondCuts } = require("./utils/getDiamondCuts");
 const { deployContract } = require("./utils/deployContract");
+const { getSelectors } = require("./utils/getSelectors");
 const { FacetCutAction} = require("./utils/facetCutAction");
 
 
 describe("Testing Git Repository", function() {
   const repoName = "TestRepo";
+  const issueCid = "Test123";
+  const issueBountyCid = "bountyCid";
+  const issueReopenCid = "ReopenCid";
+
+  const provider = waffle.provider;
+
+  const IssueState = {
+    Open: 0,
+    Closed: 1,
+    Resolved: 2
+  };
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, diamondCutFacet, diamondLoupeFacet, gitRepositoryManagementFacet, deployer, gitRepositoryLocation, diamondCut;
+  let gitFactory, diamondCutFacet, diamondLoupeFacet, gitRepositoryManagementFacet, deployer, gitRepositoryLocation, diamondCut, gitIssues;
 
   before(async function(){
     ACCOUNTS = await ethers.getSigners()
@@ -35,7 +45,7 @@ describe("Testing Git Repository", function() {
       [diamondCutFacet.address, FacetCutAction.Add, getSelectors(diamondCutFacet.functions)],
       [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)],
       [gitRepositoryManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepositoryManagementFacet.functions)],
-      [gitIssuesFacet.address, FacetCutAction.Add, getSelectors(gitIssuesFacet.function)]
+      [gitIssuesFacet.address, FacetCutAction.Add, getSelectors(gitIssuesFacet.functions)]
     ];
 
     gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
@@ -43,207 +53,249 @@ describe("Testing Git Repository", function() {
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
     gitRepositoryLocation = await gitFactory.getRepository(userRepoNameHash);
+
+    const gitIssuesFactory = await hre.ethers.getContractFactory("GitIssues");
+    gitIssues = await gitIssuesFactory.attach(gitRepositoryLocation.location);
   });
 
-  // describe("Testing DiamondLoupeFacet of GitRepository", function(){
-  //   describe("Testing facets function", function(){
-  //     it("Verifying that address of DiamondLoup contract is equal", async function(){
-  //       const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-  //       const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-  //       const facets = await diamondLoupe.facets();
+  describe("Testing GitIssues of GitRepository", function(){
+    describe("Testing openIssue function", function() {
+      it("Owner opening a new issue without a bounty", async function() {
+        await gitIssues.openIssue(issueCid);
+        const issues = await gitIssues.getAllIssues();
+        expect(issues.length).to.be.equal(1);
+        const issue = await gitIssues.getIssue(issues[0]);
 
-  //       expect(facets.length).to.be.equal(3);
-  //       expect(facets[1].facetAddress).to.be.equal(diamondLoupeFacet.address);
-  //     });
-  //   });
-    
-  //   describe("Testing facetFunctionSelectors", function(){
-  //     it("Verifying that returned facets are correct", async function(){
-  //       const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-  //       const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
+        expect(issue.cid).to.be.equal(issueCid);
+        expect(issue.isActive).to.be.true;
+        expect(issue.state).to.be.equal(0);
+        expect(issue.bounty.toNumber()).to.be.equal(0);
+        expect(issue.opener).to.be.equal(DEFAULT_ACCOUNT_ADDRESS);
+        expect(issue.placeInList).to.be.equal(0);
+      });
 
-  //       const facets = await diamondLoupe.facets();
+      it("Owner trying to open same issue again", async function() {
+        await expect(gitIssues.openIssue(issueCid)).to.be.revertedWith("Open issue exists already");
+      });
 
-  //       for(let facet of facets) {
-  //         fctSelector = await diamondLoupe.facetFunctionSelectors(facet.facetAddress);
+      it("Non-owner opening a new issue without a bounty", async function() {
+        await gitIssues.connect(ACCOUNTS[1]).openIssue(issueCid);
+        const issues = await gitIssues.getAllIssues();
+        expect(issues.length).to.be.equal(2);
+        const issue = await gitIssues.getIssue(issues[1]);
 
-  //         if (facet.facetAddress === diamondCutFacet.address) {
-  //           expect(fctSelector).to.deep.equal(getSelectors(diamondCutFacet.functions));
-  //         } else if (facet.facetAddress === diamondLoupeFacet.address) {
-  //           expect(fctSelector).to.deep.equal(getSelectors(diamondLoupeFacet.functions));
-  //         } else if (facet.facetAddress === gitRepositoryManagementFacet.address) {
-  //           expect(fctSelector).to.deep.equal(getSelectors(gitRepositoryManagementFacet.functions));
-  //         } else {
-  //           assert.fail(`Unknown facet with address ${facet.facetAddress}`);
-  //         }
-  //       }
-  //     });
-  //   });
+        expect(issue.cid).to.be.equal(issueCid);
+        expect(issue.isActive).to.be.true;
+        expect(issue.state).to.be.equal(0);
+        expect(issue.bounty.toNumber()).to.be.equal(0);
+        expect(issue.opener).to.be.equal(ACCOUNTS[1].address);
+        expect(issue.placeInList).to.be.equal(1);
+      });
 
-  //   describe("Testing facetAddresses function", function(){
-  //     it("Verifying that we get the correct number of facet addresses", async function() {
-  //       const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-  //       const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
+      it("Non-wner trying to open same issue again", async function() {
+        await expect(gitIssues.connect(ACCOUNTS[1]).openIssue(issueCid)).to.be.revertedWith("Open issue exists already");
+      });
 
-  //       const facetAddresses = await diamondLoupe.facetAddresses();
+      it("Owner opening issue with bounty", async function() {
+        const bounty = ethers.BigNumber.from(1337);
+        await gitIssues.openIssue(issueBountyCid, {value: bounty});
+        const issues = await gitIssues.getAllIssues();
+        expect(issues.length).to.be.equal(3);
+        const issue = await gitIssues.getIssue(issues[2]);
 
-  //       expect(facetAddresses.length).to.be.equal(3);
-  //       let addresses = [];
+        expect(issue.cid).to.be.equal(issueBountyCid);
+        expect(issue.isActive).to.be.true;
+        expect(issue.state).to.be.equal(0);
+        expect(issue.bounty).to.be.equal(bounty);
+        expect(issue.opener).to.be.equal(DEFAULT_ACCOUNT_ADDRESS);
+        expect(issue.placeInList).to.be.equal(2);
+      });
 
-  //       for(let facet of diamondCut) {
-  //         addresses.push(facet[0]);
-  //       };
-  //       expect(addresses).to.deep.equal(facetAddresses);
-  //     });
-  //   });
+      it("Reopening an closed issue with the openIssue function", async function() {
+        await gitIssues.openIssue(issueReopenCid);
+        const issueHash = await gitIssues.getUserCidHash(DEFAULT_ACCOUNT_ADDRESS, issueReopenCid);
+        await gitIssues.updateIssueState(issueHash, IssueState.Closed);
+        let issue = await gitIssues.getIssue(issueHash);
+        expect(issue.state).to.be.equal(IssueState.Closed);
+        await gitIssues.openIssue(issueReopenCid);
+        issue = await gitIssues.getIssue(issueHash);
+        expect(issue.state).to.be.equal(IssueState.Open);
+      })
+    });
 
-  //   describe("Testing facetAddress function", function() {
-  //     it("Verifying that facetAddress matches to address", async function() {
-  //       const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-  //       const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-  //       let address;
-  //       for(let facet of diamondCut) {
-  //         for(let fctSelector of facet[2]){
-  //           address = await diamondLoupe.facetAddress(fctSelector);
-  //           expect(address).to.be.equal(facet[0]);
-  //         };
-  //       };
-  //     });
-  //   });
+    describe("Testing appendAnswerToIssue function", function() {
+      it("Append answer to an existing issue without adding bounty", async function() {
+        const answerCid = "Answer1Cid";
+        const allIssues = await gitIssues.getAllIssues();
+        let issue = await gitIssues.getIssue(allIssues[0]);
+        expect(issue.issueAnswers.length).to.be.equal(0);
 
-  //   describe("Testing supportsInterface function", function() {
-  //     it("Checking for unavailable interface", async function() {
-  //       const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-  //       const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-  //       const supportsInterface = await diamondLoupe.supportsInterface('0xaabbccdd');
-  //       expect(supportsInterface).to.be.equal(false);
-  //     });
+        await gitIssues.connect(ACCOUNTS[1]).appendAnswerToIssue(allIssues[0], answerCid);
+        issue = await gitIssues.getIssue(allIssues[0]);
+        expect(issue.issueAnswers.length).to.be.equal(1);
+        expect(issue.issueAnswers[0].cid).to.be.equal(answerCid);
+        expect(issue.issueAnswers[0].author).to.be.equal(ACCOUNTS[1].address);
+      });
 
-  //     it("Checking for available interface", async function() {
-  //       const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-  //       const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-  //       //0x01ffc9a7 is ERC165 interface
-  //       const supportsInterface = await diamondLoupe.supportsInterface('0x01ffc9a7');
-  //       expect(supportsInterface).to.be.equal(true);
-  //     });
-  //   });
-  // });
-  
-  // describe("Testing DiamondCutFacet of GitRepository", function(){
-  //   describe("Testing diamondCut function", function(){
-  //     it("Verifying that DiamondCutFacet doesn't allow owner to add facets", async function(){
-  //       const diamondCutFactory = await hre.ethers.getContractFactory("DiamondCutFacet");
-  //       const diamondCut = await diamondCutFactory.attach(gitRepositoryLocation.location);
+      it("Append answer to an existing issue with adding a bounty", async function() {
+        const answerCid = "Answer2Cid";
+        const bounty = ethers.BigNumber.from(1337);
 
-  //       //TODO: have to change to a different contract, since Greeter is going to be removed from the repo!
-  //       let greeter = await deployContract("Greeter", ['Hello']);
-  //       await greeter.deployed();
-  //       diamondCutParam = [
-  //         [greeter.address, FacetCutAction.Add, getSelectors(greeter.functions)]
-  //       ];
+        const allIssues = await gitIssues.getAllIssues();
+        let issue = await gitIssues.getIssue(allIssues[0]);
+        expect(issue.issueAnswers.length).to.be.equal(1);
 
-  //       await expect(diamondCut.diamondCut(
-  //         diamondCutParam,
-  //         "0x0000000000000000000000000000000000000000",
-  //         "0x"
-  //       )).to.be.revertedWith("LibD: Must be factory");
-  //     });
+        await gitIssues.connect(ACCOUNTS[1]).appendAnswerToIssue(allIssues[0], answerCid, {value: bounty});
+        issue = await gitIssues.getIssue(allIssues[0]);
+        expect(issue.issueAnswers.length).to.be.equal(2);
+        expect(issue.issueAnswers[1].cid).to.be.equal(answerCid);
+        expect(issue.issueAnswers[1].author).to.be.equal(ACCOUNTS[1].address);
+        expect(issue.bounty).to.be.equal(bounty);
+      });
 
-  //     it("Verifying that DiamondCutFacet doesn't allow non-owner to add facets", async function(){
-  //       const diamondCutFactory = await hre.ethers.getContractFactory("DiamondCutFacet");
-  //       const diamondCut = await diamondCutFactory.attach(gitRepositoryLocation.location);
+      it("Append answer to an non existing issue", async function() {
+        const answerCid = "Answer2Cid";
 
-  //       //TODO: have to change to a different contract, since Greeter is going to be removed from the repo!
-  //       let greeter = await deployContract("Greeter", ['Hello']);
-  //       await greeter.deployed();
-  //       diamondCutParam = [
-  //         [greeter.address, FacetCutAction.Add, getSelectors(greeter.functions)]
-  //       ];
+        const allIssues = await gitIssues.getAllIssues();
+        //reverse the issue location hash :)
+        const nonExistingCid = `0x${allIssues[0].slice(2).split("").reverse().join("")}`;
+        
+        await expect(gitIssues.getIssue(nonExistingCid)).to.be.revertedWith("Issue with given cid does not exist");
 
-  //       await expect(diamondCut.connect(ACCOUNTS[1]).diamondCut(
-  //         diamondCutParam,
-  //         "0x0000000000000000000000000000000000000000",
-  //         "0x"
-  //       )).to.be.revertedWith("LibD: Must be factory");
-  //     });
+        await expect(gitIssues
+          .connect(ACCOUNTS[1])
+          .appendAnswerToIssue(nonExistingCid, answerCid)
+        ).to.be.revertedWith("Issue with given cid does not exist");
+      });
+    });
 
-  //     //TODO: Add tests for add, replace and remove!
-  //   });
-  // });
+    describe("Testing state different state transitions for issues", function() {
+      const cid = 'test-1-cid';
+      const bounty = ethers.BigNumber.from(1337);
 
-  // describe("Testing GitRepositoryManagement of GitRepository", function(){
-  //   describe("Testing getRepositoryInfo function", function(){
-  //     it("Verifying that getRepositoryInfo returns correct information", async function(){
-  //       const gitRepoManagementFactory = await hre.ethers.getContractFactory("GitRepositoryManagement");
-  //       const gitRepoManagement = await gitRepoManagementFactory.attach(gitRepositoryLocation.location);
-  //       const repoInfo = await gitRepoManagement.getRepositoryInfo();
+      it("Open issue without bounty", async function() {
+        // open issue
+        await gitIssues.openIssue(cid);
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        const issue = await gitIssues.getIssue(issueHash);
 
-  //       expect(repoInfo.name).to.be.equal(repoName);
-  //       expect(repoInfo.factory).to.be.equal(gitFactory.address);
-  //       expect(repoInfo.contractOwner).to.be.equal(DEFAULT_ACCOUNT_ADDRESS);
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
-  //       expect(repoInfo.repoIndex.toNumber()).to.be.equal(0);
-  //     });
+        expect(issue.cid).to.be.equal(cid);
+        expect(issue.isActive).to.be.true;
+        expect(issue.state).to.be.equal(IssueState.Open);
+        expect(issue.bounty.toNumber()).to.be.equal(0);
+        expect(issue.opener).to.be.equal(DEFAULT_ACCOUNT_ADDRESS);
+        expect(issue.placeInList).to.be.equal(issues.length - 1);
+      });
+      // we are trying to resolve, but that shouldn't work, since there is no bounty attached to it :)
+      it("Try to resolve, even there is no bounty", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await expect(gitIssues.updateIssueState(issueHash, IssueState.Resolved)).to.be.revertedWith("Can't resolve the issue");
+      });
+      // instead we are going to close it first.
+      it("Closing issue without having a bounty attached to it", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await gitIssues.updateIssueState(issueHash, IssueState.Closed);
+        const issue = await gitIssues.getIssue(issueHash);
+        expect(issue.state).to.be.equal(IssueState.Closed);
+      });
 
-  //     it("Verifying that getRepositoryInfo returns correct information using non owner account", async function(){
-  //       const gitRepoManagementFactory = await hre.ethers.getContractFactory("GitRepositoryManagement");
-  //       const gitRepoManagement = await gitRepoManagementFactory.attach(gitRepositoryLocation.location);
-  //       const repoInfo = await gitRepoManagement.connect(ACCOUNTS[1]).getRepositoryInfo();
+      it("Opening an issue which was already closed", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await gitIssues.updateIssueState(issueHash, IssueState.Open);
+        const issue = await gitIssues.getIssue(issueHash);
+        expect(issue.state).to.be.equal(IssueState.Open);
+      });
 
-  //       expect(repoInfo.name).to.be.equal(repoName);
-  //       expect(repoInfo.factory).to.be.equal(gitFactory.address);
-  //       expect(repoInfo.contractOwner).to.be.equal(DEFAULT_ACCOUNT_ADDRESS);
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
-  //       expect(repoInfo.repoIndex.toNumber()).to.be.equal(0);
-  //     });
-  //   });
+      it("Resolving an issue with a bounty", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        // in order to resolve an issue, we need to add a bounty first
+        await gitIssues.appendAnswerToIssue(issueHash, "SomeAnswerCID", {value: bounty});
+        let issue = await gitIssues.getIssue(issueHash);
+        expect(issue.bounty).to.be.equal(bounty);
+        expect(issue.state).to.be.equal(IssueState.Open);
 
-  //   describe("Testing updateUserIndex function", function(){
-  //     it("Owner trying to updating user index", async function(){
-  //       const gitRepoManagementFactory = await hre.ethers.getContractFactory("GitRepositoryManagement");
-  //       const gitRepoManagement = await gitRepoManagementFactory.attach(gitRepositoryLocation.location);
-  //       let repoInfo = await gitRepoManagement.getRepositoryInfo();
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
+        // now we are going to resolve it :)
+        await gitIssues.connect(ACCOUNTS[1]).updateIssueState(issueHash, IssueState.Resolved);
+        issue = await gitIssues.getIssue(issueHash);
+        expect(issue.state).to.be.equal(IssueState.Resolved);
+      });
 
-  //       await expect(gitRepoManagement.updateUserIndex(2)).to.be.revertedWith("You are not allowd to perform this action");
-  //       repoInfo = await gitRepoManagement.getRepositoryInfo();
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
-  //     });
+      it("Rejecting the resolved issue", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await gitIssues.updateIssueState(issueHash, IssueState.Open);
+        const issue = await gitIssues.getIssue(issueHash);
+        expect(issue.state).to.be.equal(IssueState.Open);
+        expect(issue.bounty).to.be.equal(bounty);
+      });
 
-  //     it("Non-Owner trying to update user index", async function(){
-  //       const gitRepoManagementFactory = await hre.ethers.getContractFactory("GitRepositoryManagement");
-  //       const gitRepoManagement = await gitRepoManagementFactory.attach(gitRepositoryLocation.location);
-  //       let repoInfo = await gitRepoManagement.connect(ACCOUNTS[1]).getRepositoryInfo();
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
+      it("Resolving the issue again", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await gitIssues.connect(ACCOUNTS[1]).updateIssueState(issueHash, IssueState.Resolved);
+        const issue = await gitIssues.getIssue(issueHash);
+        expect(issue.state).to.be.equal(IssueState.Resolved);
+        expect(issue.resolver).to.be.equal(ACCOUNTS[1].address);
+      });
 
-  //       await expect(gitRepoManagement.connect(ACCOUNTS[1]).updateUserIndex(2)).to.be.revertedWith("You are not allowd to perform this action");
-  //       repoInfo = await gitRepoManagement.connect(ACCOUNTS[1]).getRepositoryInfo();
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
-  //     });
-  //   });
+      it("Closing issue with bounty using different account", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await expect(gitIssues.connect(ACCOUNTS[1])
+          .updateIssueState(issueHash, IssueState.Closed)
+        ).to.be.revertedWith("Can't close the issue");
+      });
 
-  //   describe("Testing updateRepoIndex function", function(){
-  //     it("Owner trying to updating repo index", async function(){
-  //       const gitRepoManagementFactory = await hre.ethers.getContractFactory("GitRepositoryManagement");
-  //       const gitRepoManagement = await gitRepoManagementFactory.attach(gitRepositoryLocation.location);
-  //       let repoInfo = await gitRepoManagement.getRepositoryInfo();
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
+      it("Closing issue with bounty and paying out", async function() {
+        // calc the 1% for the factory
+        const factoryTip = bounty.div(100);
+        // and the 99% for the resolver
+        const resolverTip = bounty.mul(99).div(100);
 
-  //       await expect(gitRepoManagement.updateRepoIndex(2)).to.be.revertedWith("You are not allowd to perform this action");
-  //       repoInfo = await gitRepoManagement.getRepositoryInfo();
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
-  //     });
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        // get resolvers current balance
+        const resolverBalanceBefore = await provider.getBalance(ACCOUNTS[1].address);
 
-  //     it("Non-Owner trying to update repo index", async function(){
-  //       const gitRepoManagementFactory = await hre.ethers.getContractFactory("GitRepositoryManagement");
-  //       const gitRepoManagement = await gitRepoManagementFactory.attach(gitRepositoryLocation.location);
-  //       let repoInfo = await gitRepoManagement.connect(ACCOUNTS[1]).getRepositoryInfo();
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
+        await gitIssues.updateIssueState(issueHash, IssueState.Closed);
+        const issue = await gitIssues.getIssue(issueHash);
+        const resolverBalanceAfter = await provider.getBalance(ACCOUNTS[1].address);
 
-  //       await expect(gitRepoManagement.connect(ACCOUNTS[1]).updateRepoIndex(2)).to.be.revertedWith("You are not allowd to perform this action");
-  //       repoInfo = await gitRepoManagement.connect(ACCOUNTS[1]).getRepositoryInfo();
-  //       expect(repoInfo.userIndex.toNumber()).to.be.equal(0);
-  //     });
-  //   });
-  // });
+        expect(issue.state).to.be.equal(IssueState.Closed);
+        expect(issue.bounty.toNumber()).to.be.equal(0);
+        expect(issue.resolved).to.be.true;
+        expect(await gitFactory.tips()).to.be.equal(factoryTip);
+        expect(resolverBalanceAfter).to.be.equal(resolverBalanceBefore.add(resolverTip));
+      });
+
+      it("Reopening an already resolved and closed issue", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await gitIssues.updateIssueState(issueHash, IssueState.Open);
+        const issue = await gitIssues.getIssue(issueHash);
+        expect(issue.state).to.be.equal(IssueState.Open);
+      });
+
+      it("Trying to add a bounty to an reopened issue", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await expect(
+          gitIssues.appendAnswerToIssue(issueHash, "SomeAnswerCID", {value: bounty})
+        ).to.be.revertedWith("Can't add a bounty for already resolved issue");
+      });
+
+      it("Trying to resolve an already resolved and closed issue", async function() {
+        const issues = await gitIssues.getAllIssues();
+        const issueHash = issues[issues.length - 1];
+        await expect(
+          gitIssues.updateIssueState(issueHash, IssueState.Resolved)
+        ).to.be.revertedWith("Can't resolve the issue");
+      });
+    });
+  });
 });
