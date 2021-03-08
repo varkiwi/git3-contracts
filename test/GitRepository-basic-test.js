@@ -128,11 +128,10 @@ describe("Testing Git Repository", function() {
         const diamondCutFactory = await hre.ethers.getContractFactory("DiamondCutFacet");
         const diamondCut = await diamondCutFactory.attach(gitRepositoryLocation.location);
 
-        //TODO: have to change to a different contract, since Greeter is going to be removed from the repo!
-        let greeter = await deployContract("Greeter", ['Hello']);
-        await greeter.deployed();
+        let gitBranch = await deployContract("GitBranch");
+        await gitBranch.deployed();
         diamondCutParam = [
-          [greeter.address, FacetCutAction.Add, getSelectors(greeter.functions)]
+          [gitBranch.address, FacetCutAction.Add, getSelectors(gitBranch.functions)]
         ];
 
         await expect(diamondCut.diamondCut(
@@ -146,11 +145,10 @@ describe("Testing Git Repository", function() {
         const diamondCutFactory = await hre.ethers.getContractFactory("DiamondCutFacet");
         const diamondCut = await diamondCutFactory.attach(gitRepositoryLocation.location);
 
-        //TODO: have to change to a different contract, since Greeter is going to be removed from the repo!
-        let greeter = await deployContract("Greeter", ['Hello']);
-        await greeter.deployed();
+        let gitBranch = await deployContract("GitBranch");
+        await gitBranch.deployed();
         diamondCutParam = [
-          [greeter.address, FacetCutAction.Add, getSelectors(greeter.functions)]
+          [gitBranch.address, FacetCutAction.Add, getSelectors(gitBranch.functions)]
         ];
 
         await expect(diamondCut.connect(ACCOUNTS[1]).diamondCut(
