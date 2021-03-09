@@ -11,7 +11,7 @@ contract GitIssues {
     enum IssueState {Open, Closed, Resolved}
 
     bytes32 constant GIT_ISSUES_STORAGE_POSITION = keccak256("diamond.standard.git.issues");
-    
+
     // Storage struct which contains a mapping from bytes32 to an Issue, and an array containing all issues
     struct GitIssuesStorage {
         mapping(bytes32 => Issue) issues;
@@ -128,6 +128,7 @@ contract GitIssues {
                 payable(i.issues[issueHash].resolver).transfer(tips * 99 / 100);
                 i.issues[issueHash].bounty = 0;
             } else if(i.issues[issueHash].state == IssueState.Resolved && 
+                    // (block.number - i.issues[issueHash].resolvedBlockNumber) >= 200) 
                     (block.number - i.issues[issueHash].resolvedBlockNumber) >= 604800) 
             { 
                 i.issues[issueHash].state = state;

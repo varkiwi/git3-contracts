@@ -12,6 +12,7 @@ describe("Testing Git Repository", function() {
   const issueCid = "Test123";
   const issueBountyCid = "bountyCid";
   const issueReopenCid = "ReopenCid";
+  const autoResolveWaitBlocks = 200;
 
   const provider = waffle.provider;
 
@@ -296,6 +297,31 @@ describe("Testing Git Repository", function() {
           gitIssues.updateIssueState(issueHash, IssueState.Resolved)
         ).to.be.revertedWith("Can't resolve the issue");
       });
+
+      // it("Trying to increate the block number", async function(){
+      //   const newBounty = ethers.BigNumber.from(1337);
+      //   const newIssueCid = "TestingAutoResolve";
+      //   await gitIssues.openIssue(newIssueCid, {value: newBounty});
+        
+      //   const issues = await gitIssues.getAllIssues();
+      //   const issueHash = issues[issues.length - 1];
+
+      //   await gitIssues.connect(ACCOUNTS[1]).updateIssueState(issueHash, IssueState.Resolved);
+      //   let issue = await gitIssues.getIssue(issueHash);
+      //   const resolvedBlockNumber = issue.resolvedBlockNumber.toNumber();
+        
+      //   // the resolver is not able to close the issue
+      //   await expect(gitIssues.connect(ACCOUNTS[1]).updateIssueState(issueHash, IssueState.Closed)).to.be.revertedWith("Can't close the issue");
+      //   // 604800 is the number of blocks which need to be processed until the auto resolver can be used
+      //   let sendNoTx = resolvedBlockNumber + autoResolveWaitBlocks;
+      //   for (; sendNoTx > 0; sendNoTx -= 1) {
+      //     await ACCOUNTS[0].sendTransaction({to: ACCOUNTS[1].address, value: 1});
+      //   }
+      //   // unless a number of blocks passed
+      //   gitIssues.connect(ACCOUNTS[1]).updateIssueState(issueHash, IssueState.Closed);
+      //   issue = await gitIssues.getIssue(issueHash);
+      //   expect(issue.state).to.be.equal(IssueState.Closed);
+      // }); 
     });
   });
 });
