@@ -24,7 +24,7 @@ describe("Testing GitFactory", function() {
     diamondCutFacet = await deployContract("DiamondCutFacet");
     diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
-    deployer = await deployContract("Deployer");
+    deployer = await deployContract("GitRepositoryDeployer");
 
     await diamondCutFacet.deployed();
     await diamondLoupeFacet.deployed();

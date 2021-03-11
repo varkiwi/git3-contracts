@@ -32,7 +32,7 @@ async function main() {
     const diamondCutFacet = await deployContract("DiamondCutFacet");
     const diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
     const gitRepoManagementFacet = await deployContract("GitRepositoryManagement");
-    const deployer = await deployContract("Deployer");
+    const deployer = await deployContract("GitRepositoryDeployer");
 
     await diamondCutFacet.deployed();
     await diamondLoupeFacet.deployed();

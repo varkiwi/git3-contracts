@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "./GitRepository.sol";
 import "./interfaces/IDiamondCut.sol";
 
-contract Deployer {
+contract GitRepositoryDeployer {
     function deployContract(
         IDiamondCut.FacetCut[] memory _diamondCut,
         GitRepository.DiamondArgs memory _args

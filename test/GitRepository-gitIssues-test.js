@@ -34,7 +34,7 @@ describe("Testing Git Repository", function() {
     diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     gitIssuesFacet = await deployContract("GitIssues");
-    deployer = await deployContract("Deployer");
+    deployer = await deployContract("GitRepositoryDeployer");
 
     await diamondCutFacet.deployed();
     await diamondLoupeFacet.deployed();

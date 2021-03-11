@@ -2,7 +2,7 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "./Deployer.sol";
+import "./GitRepositoryDeployer.sol";
 import "./GitRepository.sol";
 import "./facets/DiamondCutFacet.sol";
 import "./Ownable.sol";
@@ -16,7 +16,7 @@ contract GitFactory is Ownable {
     uint256 public tips;
 
     // address of deplyer contract
-    Deployer private deployer;
+    GitRepositoryDeployer private deployer;
 
     // Struct from LibGitFactory, which stores all repository related information
     LibGitFactory.Data private _repoData;
@@ -24,7 +24,7 @@ contract GitFactory is Ownable {
     // array of FacetCuts structs
     IDiamondCut.FacetCut[] public diamondCuts;
 
-    constructor(IDiamondCut.FacetCut[] memory _diamondCut, Deployer d) {
+    constructor(IDiamondCut.FacetCut[] memory _diamondCut, GitRepositoryDeployer d) {
         for(uint i = 0; i < _diamondCut.length; i++){
             diamondCuts.push(_diamondCut[i]);
         }
