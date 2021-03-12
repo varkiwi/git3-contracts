@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import "../GitFactory.sol";
 import "./GitRepositoryManagement.sol";
-import "../libraries/LibDiamond.sol";
+import "../libraries/LibGitRepository.sol";
 
 contract GitBranch {
     event NewPush(string branch, string Cid);

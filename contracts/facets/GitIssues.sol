@@ -3,7 +3,7 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 import "../GitFactory.sol";
-import "../libraries/LibDiamond.sol";
+import "../libraries/LibGitRepository.sol";
 
 contract GitIssues {
     event NewIssue(string Cid);
@@ -119,7 +119,7 @@ contract GitIssues {
             } else if(i.issues[issueHash].state == IssueState.Resolved && i.issues[issueHash].opener == msg.sender) {
                 i.issues[issueHash].state = state;
                 i.issues[issueHash].resolved = true;
-                LibDiamond.RepositoryInformation storage ri = LibDiamond.repositoryInformation();
+                LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
                 uint tips = i.issues[issueHash].bounty;
                 // factory get's 1%
                 (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 19000}('');
@@ -133,7 +133,7 @@ contract GitIssues {
             { 
                 i.issues[issueHash].state = state;
                 i.issues[issueHash].resolved = true;
-                LibDiamond.RepositoryInformation storage ri = LibDiamond.repositoryInformation();
+                LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
                 uint tips = i.issues[issueHash].bounty;
                 // factory get's 1%
                 (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 19000}('');

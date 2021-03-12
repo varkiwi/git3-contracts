@@ -8,7 +8,7 @@ pragma experimental ABIEncoderV2;
 /******************************************************************************/
 
 import "../interfaces/IDiamondCut.sol";
-import "../libraries/LibDiamond.sol";
+import "../libraries/LibGitRepository.sol";
 
 contract DiamondCutFacet is IDiamondCut {
     /// @notice Add/replace/remove any number of functions and optionally execute
@@ -22,7 +22,7 @@ contract DiamondCutFacet is IDiamondCut {
         address _init,
         bytes calldata _calldata
     ) external override {
-        LibDiamond.enforceIsFactory();
-        LibDiamond.diamondCut(_diamondCut, _init, _calldata);
+        LibGitRepository.enforceIsFactory();
+        LibGitRepository.diamondCut(_diamondCut, _init, _calldata);
     }
 }

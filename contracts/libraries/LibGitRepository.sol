@@ -9,7 +9,7 @@ pragma experimental ABIEncoderV2;
 import "../interfaces/IDiamondCut.sol";
 import "../GitFactory.sol";
 
-library LibDiamond {
+library LibGitRepository {
     event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 

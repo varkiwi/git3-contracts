@@ -17,7 +17,7 @@ library LibGitFactory {
         uint256 index;
     }
 
-    struct Data {
+    struct Repositories {
         // mapps from a bytes32 to a repository contract
         // The bytes32 key is the hash over the owner's address and 
         // the repository name
@@ -50,14 +50,14 @@ library LibGitFactory {
      * This function is used to create a new repository. By providing a name, a new 
      * GitRepository smart contract is deployed.
      * 
-     * @param self (Data) - The struct which contains all repository related inforation
+     * @param self (Repositories) - The struct which contains all repository related inforation
      * @param key (bytes32) - Hash of user address and repository name
      * @param repoName (string) - The name of the new repository
      * @param newGitRepo (GitRepository) - Address of the newly deployed GitRepostory
      * @param owner (address) - Address of the owner of the new GitRepository
      */
-    function initRepository(
-        Data storage self,
+    function addRepository(
+        Repositories storage self,
         bytes32 key,
         string memory repoName,
         GitRepository newGitRepo,
@@ -89,14 +89,14 @@ library LibGitFactory {
      * 
      * This function should be called only by GitRepository contracts.
      * 
-     * @param self (Data) - The struct which contains all repository related inforation
+     * @param self (Repositories) - The struct which contains all repository related inforation
      * @param owner (address) - Owner of the repository to be removed
      * @param repoName (string) - The name of the repository to be removed
      * @param userIndex (uint256) - The position the of the repositories owner in the reposUserList
      * @param repoName (uint256) - The position of the repositories name in the usersRepoList
      */
     function removeRepository(
-        Data storage self,
+        Repositories storage self,
         address owner,
         string memory repoName,
         uint256 userIndex, 
@@ -180,7 +180,7 @@ library LibGitFactory {
         return keccak256(abi.encode(_owner, _repoName));
     }
 
-    function getRepository(Data storage self, bytes32 location) view internal returns (Repository memory) {
+    function getRepository(Repositories storage self, bytes32 location) view internal returns (Repository memory) {
         return self.repositoryList[location];
     }
 
@@ -191,7 +191,7 @@ library LibGitFactory {
      * 
      * @return (address[]) - An array containing all owner addresses having a repository with the given name
      */ 
-    function getRepositoriesUserList(Data storage self, string memory _repoName) view internal returns (address[] memory) {
+    function getRepositoriesUserList(Repositories storage self, string memory _repoName) view internal returns (address[] memory) {
         return self.reposUserList[_repoName];
     }
 }

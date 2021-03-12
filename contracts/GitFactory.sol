@@ -19,7 +19,7 @@ contract GitFactory is Ownable {
     GitRepositoryDeployer private deployer;
 
     // Struct from LibGitFactory, which stores all repository related information
-    LibGitFactory.Data private _repoData;
+    LibGitFactory.Repositories private _repoData;
     
     // array of FacetCuts structs
     IDiamondCut.FacetCut[] public diamondCuts;
@@ -38,15 +38,16 @@ contract GitFactory is Ownable {
      * @param _repoName (string) - The name of the new repository
      */
     function createRepository(string memory _repoName) public {
-        // we has the user address and the repo name to a key 
+        // we have the user address and the repo name to a key 
         bytes32 key = LibGitFactory.getUserRepoNameHash(msg.sender, _repoName);
 
         // check if the key has already an active repository
         require(!_repoData.repositoryList[key].isActive, 'Repository exists already');
         
+        // deploying new contract
         GitRepository newGitRepo = deployer.deployContract(
             diamondCuts, 
-            GitRepository.DiamondArgs({
+            GitRepository.RepositoryArgs({
                 owner: msg.sender,
                 factory: this,
                 name: _repoName,
@@ -55,7 +56,7 @@ contract GitFactory is Ownable {
             })
         );
 
-        LibGitFactory.initRepository(_repoData, key, _repoName, newGitRepo, msg.sender);
+        LibGitFactory.addRepository(_repoData, key, _repoName, newGitRepo, msg.sender);
         emit NewRepositoryCreated(_repoName, msg.sender);
     }
 

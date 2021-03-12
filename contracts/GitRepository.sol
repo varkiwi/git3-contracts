@@ -10,7 +10,7 @@ pragma experimental ABIEncoderV2;
 /******************************************************************************/
 
 import "./GitFactory.sol";
-import "./libraries/LibDiamond.sol";
+import "./libraries/LibGitRepository.sol";
 import "./interfaces/IDiamondLoupe.sol";
 import "./interfaces/IDiamondCut.sol";
 import "./interfaces/IERC173.sol";
@@ -19,7 +19,7 @@ import "./interfaces/IERC165.sol";
 contract GitRepository {
     // more arguments are added to this struct
     // this avoids stack too deep errors
-    struct DiamondArgs {
+    struct RepositoryArgs {
         address owner;
         GitFactory factory;
         string name; 
@@ -27,10 +27,10 @@ contract GitRepository {
         uint repoIndex;
     }
 
-    constructor(IDiamondCut.FacetCut[] memory _diamondCut, DiamondArgs memory _args) payable {
-        LibDiamond.diamondCut(_diamondCut, address(0), new bytes(0));
-        LibDiamond.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex, _args.owner);
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+    constructor(IDiamondCut.FacetCut[] memory _diamondCut, RepositoryArgs memory _args) payable {
+        LibGitRepository.diamondCut(_diamondCut, address(0), new bytes(0));
+        LibGitRepository.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex, _args.owner);
+        LibGitRepository.DiamondStorage storage ds = LibGitRepository.diamondStorage();
 
         // adding ERC165 data
         ds.supportedInterfaces[type(IERC165).interfaceId] = true;
@@ -42,8 +42,8 @@ contract GitRepository {
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
-        LibDiamond.DiamondStorage storage ds;
-        bytes32 position = LibDiamond.DIAMOND_STORAGE_POSITION;
+        LibGitRepository.DiamondStorage storage ds;
+        bytes32 position = LibGitRepository.DIAMOND_STORAGE_POSITION;
         assembly {
             ds.slot := position
         }
