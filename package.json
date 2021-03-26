@@ -10,6 +10,9 @@
     "solidity-coverage": "^0.7.16"
   },
   "dependencies": {
+    "@pinata/sdk": "^1.1.13",
+    "pin-abi": "^1.0.1",
+    "uploadabitopinata": "^1.0.0",
     "web3-eth-abi": "^1.3.1"
   }
 }

@@ -1,7 +1,11 @@
 require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
 const fs = require('fs');
+const { uploadABIToPinata } = require("pin-abi");
+const { task } = require("hardhat/config");
 const { exit } = require("process");
+
+// const { uploadABIToPinata } = require("./tasks/uploadABIToPinata");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -13,9 +17,16 @@ task("accounts", "Prints the list of accounts", async () => {
   }
 });
 
+task("upload", "Upload Smart Contracts ABI to Pinata")
+  .addParam("name", "The name for the Pinata Pin")
+  .setAction(async (taskArgs) => {
+    const c = await uploadABIToPinata(taskArgs.name);
+    console.log(c);
+  });
+
 function readPrivateKey(name) {
   try {
-    const data = fs.readFileSync(`privkeys/${name}.key`, 'utf8');
+    const data = fs.readFileSync(`secrets/${name}`, 'utf8');
     return data;
   } catch (err) {
     console.error(err.message);
@@ -33,7 +44,7 @@ module.exports = {
   networks: {
     maticTestnet: {
       url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [readPrivateKey("maticTestnet")]
+      accounts: [readPrivateKey("maticTestnet.key")]
     }
   },
   settings: {
