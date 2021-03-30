@@ -52,3 +52,9 @@ and in case you want to test just single files:
 ```
 npx hardhat coverage --testfiles "test/*.js"
 ```
+
+## Upload ABI to Pinata
+
+```
+npx hardhat upload --name [name]
+```
