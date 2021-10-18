@@ -30,7 +30,7 @@ function readPrivateKey(name) {
     return data;
   } catch (err) {
     console.error(err.message);
-    exit(1);
+    return '';
   }
 }
 
@@ -42,9 +42,13 @@ function readPrivateKey(name) {
 module.exports = {
   solidity: "0.7.6",
   networks: {
+    hardhat: {},
     maticTestnet: {
       url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [readPrivateKey("maticTestnet.key")]
+      //TODO: If I want to use the hardhat network, the key for matic is still read.
+      // What for? If the file does not exist, hardhat gives Error HH8. Why?
+      // Could be avoided, since I am not using these network settings.
+    //   accounts: [readPrivateKey("maticTestnet.key")]
     }
   },
   settings: {

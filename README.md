@@ -40,18 +40,24 @@ Currently supported networks:
 In order to deploy to a network, you need a private key. Create a secrets directory in the root of the project, create a file called `maticTestnet.key` and write the private key in. Without any quotes or whatsoever. Just plain hex string :)
 
 ## Testing contracts
-
+Testing locally
 ```
-npm hardhat test
+npx hardhat test --network hardhat
 ```
 and with code coverage:
 ```
-npm hardhat coverage
+npx hardhat coverage
 ```
 and in case you want to test just single files:
 ```
 npx hardhat coverage --testfiles "test/*.js"
 ```
+
+If you want to test the contracts on the network, just run:
+```
+npx hardhat test --network maticTestnet
+```
+You will require a file with a private key in the secrets directory: secrets/maticTestnet.key
 
 ## Upload ABI to Pinata
 

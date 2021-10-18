@@ -63,5 +63,8 @@ contract GitRepository {
         }
     }
 
-    receive() external payable {}
+    receive() external payable {
+        LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
+        ri.donations += msg.value;
+    }
 }

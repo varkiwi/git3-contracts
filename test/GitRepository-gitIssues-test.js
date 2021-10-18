@@ -1,6 +1,5 @@
 const { expect, assert } = require("chai");
 const { waffle } = require("hardhat");
-const { isCallTrace } = require("hardhat/internal/hardhat-network/stack-traces/message-trace");
 
 const { deployContract } = require("./utils/deployContract");
 const { getSelectors } = require("./utils/getSelectors");
@@ -12,7 +11,6 @@ describe("Testing Git Repository", function() {
   const issueCid = "Test123";
   const issueBountyCid = "bountyCid";
   const issueReopenCid = "ReopenCid";
-  const autoResolveWaitBlocks = 200;
 
   const provider = waffle.provider;
 
@@ -93,7 +91,7 @@ describe("Testing Git Repository", function() {
         expect(issue.placeInList).to.be.equal(1);
       });
 
-      it("Non-wner trying to open same issue again", async function() {
+      it("Non-owner trying to open same issue again", async function() {
         await expect(gitIssues.connect(ACCOUNTS[1]).openIssue(issueCid)).to.be.revertedWith("Open issue exists already");
       });
 
