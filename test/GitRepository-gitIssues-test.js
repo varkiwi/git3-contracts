@@ -91,7 +91,7 @@ describe("Testing Git Repository", function() {
         expect(issue.placeInList).to.be.equal(1);
       });
 
-      it("Non-wner trying to open same issue again", async function() {
+      it("Non-owner trying to open same issue again", async function() {
         await expect(gitIssues.connect(ACCOUNTS[1]).openIssue(issueCid)).to.be.revertedWith("Open issue exists already");
       });
 

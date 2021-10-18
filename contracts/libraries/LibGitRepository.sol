@@ -39,6 +39,7 @@ library LibGitRepository {
         uint userIndex;
         // the position of the repositories name in the usersRepoList
         uint repoIndex;
+        uint donations;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
@@ -64,6 +65,7 @@ library LibGitRepository {
 
         address previousOwner = ri.contractOwner;
         ri.contractOwner = _newOwner;
+        ri.donations = 0;
         emit OwnershipTransferred(previousOwner, _newOwner);
     }
 
