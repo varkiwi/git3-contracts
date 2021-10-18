@@ -50,6 +50,10 @@ npx hardhat coverage
 ```
 and in case you want to test just single files:
 ```
+npx hardhat test [path/to/file1, path/to/file2]
+```
+and with coverage:
+```
 npx hardhat coverage --testfiles "test/*.js"
 ```
 
