@@ -1,6 +1,5 @@
 const { expect, assert } = require("chai");
 const { waffle } = require("hardhat");
-const { isCallTrace } = require("hardhat/internal/hardhat-network/stack-traces/message-trace");
 
 const { deployContract } = require("./utils/deployContract");
 const { getSelectors } = require("./utils/getSelectors");
@@ -12,7 +11,6 @@ describe("Testing Git Repository", function() {
   const issueCid = "Test123";
   const issueBountyCid = "bountyCid";
   const issueReopenCid = "ReopenCid";
-  const autoResolveWaitBlocks = 200;
 
   const provider = waffle.provider;
 
