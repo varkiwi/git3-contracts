@@ -35,6 +35,7 @@ async function main() {
     const deployer = await deployContract("GitRepositoryDeployer");
     const gitBranchFacet = await deployContract("GitBranch");
     const gitIssuesFacet = await deployContract("GitIssues");
+    const gitTipsFacet = await deployContract("GitTips");
 
     await diamondCutFacet.deployed();
     await diamondLoupeFacet.deployed();
@@ -42,6 +43,7 @@ async function main() {
     await gitRepoManagementFacet.deployed();
     await gitBranchFacet.deployed();
     await gitIssuesFacet.deployed();
+    await gitTipsFacet.deployed();
 
     console.log("DiamondCutFacet's address is:", diamondCutFacet.address);
     console.log("DiamondLoupeFacet's address is:", diamondLoupeFacet.address);
@@ -49,6 +51,7 @@ async function main() {
     console.log("GitRepoManagementFacet's address is:", gitRepoManagementFacet.address);
     console.log("GitBranchFacet's address is:", gitBranchFacet.address);
     console.log("GitIssuesFacet's address is:", gitIssuesFacet.address);
+    console.log("GitTipsFacet's address is:", gitTipsFacet.address);
     
 
     const diamondCut = [
@@ -56,7 +59,8 @@ async function main() {
       [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)],
       [gitRepoManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepoManagementFacet.functions)],
       [gitBranchFacet.address, FacetCutAction.Add, getSelectors(gitBranchFacet.functions)],
-      [gitIssuesFacet.address, FacetCutAction.Add, getSelectors(gitIssuesFacet.functions)]
+      [gitIssuesFacet.address, FacetCutAction.Add, getSelectors(gitIssuesFacet.functions)],
+      [gitTipsFacet.address, FacetCutAction.Add, getSelectors(gitTipsFacet.functions)]
     ];
 
 
