@@ -109,7 +109,7 @@ library LibGitFactory {
         GitRepositoryManagement repoToDelete = GitRepositoryManagement(address(self.repositoryList[key].location));
         uint _userIndex; 
         uint _repoIndex;
-        (, , , _userIndex, _repoIndex) = repoToDelete.getRepositoryInfo();
+        (, , , _userIndex, _repoIndex,) = repoToDelete.getRepositoryInfo();
         require(userIndex == _userIndex, "User Index value is not correct");
         require(repoIndex == _repoIndex, "Repo Index value is not correct");
 

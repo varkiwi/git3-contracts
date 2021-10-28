@@ -22,7 +22,6 @@ contract GitBranch {
     }
     
     bytes32 constant GIT_BRANCHES_STORAGE_POSITION = keccak256("diamond.standard.git.branch");
-    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.git.repositoryInformation");
     
     // Returns the struct from a specified position in contract storage
     // ds is short for DiamondStorage
@@ -36,8 +35,8 @@ contract GitBranch {
         }
     }
 
-    function gitRepositoryInformation() internal pure returns(GitRepositoryManagement.RepositoryInformation storage ds) {
-        bytes32 position = DIAMOND_STORAGE_POSITION;
+    function gitRepositoryInformation() internal pure returns(LibGitRepository.RepositoryInformation storage ds) {
+        bytes32 position = LibGitRepository.REPO_INFO_POSITION;
         assembly {
             ds.slot := position
         }
@@ -53,7 +52,7 @@ contract GitBranch {
     function push(string memory branch, string memory newCid) public {
         require(bytes(branch).length > 0, "No branch name provided");
         require(bytes(newCid).length > 0, "No CID provided");
-        GitRepositoryManagement.RepositoryInformation storage gri = gitRepositoryInformation();
+        LibGitRepository.RepositoryInformation storage gri = gitRepositoryInformation();
         require(gri.contractOwner == msg.sender, "Only owner of repository is able to push");
 
         GitBranchStorage storage gitBranchStorage = gitBranches();
