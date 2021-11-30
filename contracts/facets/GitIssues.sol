@@ -11,6 +11,7 @@ contract GitIssues {
     enum IssueState {Open, Closed, Resolved}
 
     bytes32 constant GIT_ISSUES_STORAGE_POSITION = keccak256("diamond.standard.git.issues");
+    uint256 issueNumber = 1;
 
     // Storage struct which contains a mapping from bytes32 to an Issue, and an array containing all issues
     struct GitIssuesStorage {
@@ -29,6 +30,7 @@ contract GitIssues {
         uint resolvedBlockNumber;
         bool resolved;
         uint placeInList;
+        uint issueNumber;
     }
 
     struct IssueText {
@@ -69,6 +71,8 @@ contract GitIssues {
             issue.bounty = msg.value;
             issue.opener = msg.sender;
             issue.placeInList = i.allIssues.length;
+            issue.issueNumber = issueNumber;
+            issueNumber++;
 
             i.issues[userCidHash] = issue;
             i.allIssues.push(userCidHash);
