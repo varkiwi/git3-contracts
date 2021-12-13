@@ -11,7 +11,7 @@ contract GitIssues {
     enum IssueState {Open, Closed, Resolved}
 
     bytes32 constant GIT_ISSUES_STORAGE_POSITION = keccak256("diamond.standard.git.issues");
-    uint256 issueNumber = 1;
+    uint issueNumber;
 
     // Storage struct which contains a mapping from bytes32 to an Issue, and an array containing all issues
     struct GitIssuesStorage {
@@ -61,18 +61,22 @@ contract GitIssues {
         bytes32 userCidHash = getUserCidHash(msg.sender, issueCid);
         Issue storage issue = i.issues[userCidHash];
         // if there exists already an issue but the state is closed, it is reopened
-        if(issue.isActive && issue.state == IssueState.Closed) {
-            issue.state = IssueState.Open;
-        // if no issue exists, a new one is opened
-        } else if (!issue.isActive){
+        // if(issue.isActive && issue.state == IssueState.Closed) {
+        //     issue.state = IssueState.Open;
+        //     if (msg.value > 0) {
+        //         msg.sender.transfer(msg.value);
+        //     }
+        // // if no issue exists, a new one is opened
+        // } else 
+        if (!issue.isActive){
             issue.isActive = true;
             issue.state = IssueState.Open;
             issue.cid = issueCid;
             issue.bounty = msg.value;
             issue.opener = msg.sender;
             issue.placeInList = i.allIssues.length;
-            issue.issueNumber = issueNumber;
             issueNumber++;
+            issue.issueNumber = issueNumber;
 
             i.issues[userCidHash] = issue;
             i.allIssues.push(userCidHash);
@@ -92,13 +96,26 @@ contract GitIssues {
     function appendAnswerToIssue(bytes32 issueHash, string calldata issueAnswerCid) public payable {
         GitIssuesStorage storage i = gitIssues();
         require(i.issues[issueHash].isActive, "Issue with given cid does not exist");
-        require(!i.issues[issueHash].resolved, "Can't add a bounty for already resolved issue");
+        // require(!i.issues[issueHash].resolved, "Can't add a bounty for already resolved issue");
         i.issues[issueHash].issueAnswers.push(IssueText({
             cid: issueAnswerCid,
             author: msg.sender
         }));
-        if(msg.value > 0) {
-            i.issues[issueHash].bounty += msg.value;
+        // if we attach an answer and the issue was already closed, it is set to open again
+        if(i.issues[issueHash].state == IssueState.Closed) {
+            i.issues[issueHash].state = IssueState.Open;
+            // if there is a bounty attached to it, we are sending it back to the commenter
+            if (msg.value > 0) {
+                msg.sender.transfer(msg.value);
+            }
+        } else if(msg.value > 0) {
+            if (i.issues[issueHash].state == IssueState.Open) {
+                // if the state is open and a bounty is attached, we are adding the bounty to the bounty pool
+                i.issues[issueHash].bounty += msg.value;   
+            } else {
+                // when the state is resolved, the bounty is send back to the commenter
+                msg.sender.transfer(msg.value);
+            }
         }
     }
 
@@ -116,9 +133,16 @@ contract GitIssues {
         require(i.issues[issueHash].isActive, "Issue with given cid does not exist");
         // state transition to closed
         if(state == IssueState.Closed) {
-            // if the current state is open and there is not
-            if(i.issues[issueHash].state == IssueState.Open && i.issues[issueHash].bounty == 0) {
-                i.issues[issueHash].state = state;
+            // if the current state is open and there is no bounty or it has been already resolved
+            if(i.issues[issueHash].state == IssueState.Open && (i.issues[issueHash].bounty == 0 || i.issues[issueHash].resolved)) {
+                LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
+                // we are checking if the sender is the opener or the owner of the repository
+                if (msg.sender == i.issues[issueHash].opener || msg.sender == ri.contractOwner) {
+                    i.issues[issueHash].state = state;
+                    i.issues[issueHash].resolved = true;
+                } else {
+                    revert("You don't have the permission to close this issue");
+                }
             // if the current state is resolved and the opener is also the one who is closing it, confirming the payout
             } else if(i.issues[issueHash].state == IssueState.Resolved && i.issues[issueHash].opener == msg.sender) {
                 i.issues[issueHash].state = state;
@@ -132,8 +156,8 @@ contract GitIssues {
                 payable(i.issues[issueHash].resolver).transfer(tips * 99 / 100);
                 i.issues[issueHash].bounty = 0;
             } else if(i.issues[issueHash].state == IssueState.Resolved && 
-                    // (block.number - i.issues[issueHash].resolvedBlockNumber) >= 200) 
-                    (block.number - i.issues[issueHash].resolvedBlockNumber) >= 604800) 
+                    (block.number - i.issues[issueHash].resolvedBlockNumber) >= 200) 
+                    // (block.number - i.issues[issueHash].resolvedBlockNumber) >= 604800) 
             { 
                 i.issues[issueHash].state = state;
                 i.issues[issueHash].resolved = true;
@@ -150,17 +174,25 @@ contract GitIssues {
             }
         //state transition to resolved
         } else if(state == IssueState.Resolved) {
-            // can go to resolved when the state is open, has a bounty and and has not been resolved previously
-            if(i.issues[issueHash].state == IssueState.Open && i.issues[issueHash].bounty > 0 && !i.issues[issueHash].resolved) {
+            LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
+            // can go to resolved when the state is open, has a bounty, has not been resolved previously and the owner
+            // of the repository is providing the solution
+            if(i.issues[issueHash].state == IssueState.Open &&
+                    i.issues[issueHash].bounty > 0 &&
+                    !i.issues[issueHash].resolved &&
+                    msg.sender == ri.contractOwner) {
                 i.issues[issueHash].state = state;
                 i.issues[issueHash].resolver = msg.sender;
                 i.issues[issueHash].resolvedBlockNumber = block.number;
             } else {
                 revert("Can't resolve the issue");
             }
-        // state transition to open
+        // state transition to open.
         } else if(state == IssueState.Open) {
-            i.issues[issueHash].state = state;
+            // if the current state is on resolved, the opener can reopen it. That means, opener is not happy with the solution
+            if (i.issues[issueHash].state == IssueState.Resolved && msg.sender == i.issues[issueHash].opener) {
+                i.issues[issueHash].state = state;
+            }
         }
     }
 

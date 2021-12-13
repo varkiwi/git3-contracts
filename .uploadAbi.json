@@ -5,6 +5,7 @@
         "facets/GitBranch.sol",
         "facets/GitIssues.sol",
         "facets/GitRepositoryManagement.sol",
+        "facets/GitTips.sol",
         "GitFactory.sol",
         "GitRepository.sol"
     ]
