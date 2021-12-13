@@ -35,7 +35,7 @@ npx hardhat run --network <your-network> scripts/deployGitContracts.js
 Currently supported networks:
 
     * hardhat       : npx hardhat run --network hardhat scripts/deployGitContracts.js
-    * Mumbai Testnet: npx hardhat run --network maticTesnet scripts/deployGitContracts.js
+    * Mumbai Testnet: npx hardhat run --network maticTestnet scripts/deployGitContracts.js
 
 In order to deploy to a network, you need a private key. Create a secrets directory in the root of the project, create a file called `maticTestnet.key` and write the private key in. Without any quotes or whatsoever. Just plain hex string :)
 
