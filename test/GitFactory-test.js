@@ -15,6 +15,7 @@ describe("Testing GitFactory", function() {
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
   let gitFactory, diamondCutFacet, diamondLoupeFacet, gitRepositoryManagementFacet, deployer;
+  let gitContractRegistry;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
   before(async function(){
@@ -36,7 +37,15 @@ describe("Testing GitFactory", function() {
       [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)]
     ];
 
-    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
+    const diamondCut2 = [
+        [diamondCutFacet.address, getSelectors(diamondCutFacet.functions)],
+        [diamondLoupeFacet.address, getSelectors(diamondLoupeFacet.functions)]
+      ];
+    
+    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut2]);
+    await gitContractRegistry.deployed();
+
+    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
     await gitFactory.deployed();
   })
 
@@ -354,7 +363,7 @@ describe("Testing GitFactory", function() {
         [gitRepositoryManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepositoryManagementFacet.functions)]
       ];
   
-      gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
+      gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
       await gitFactory.deployed();
       // console.log(gitFactory.address);
       
@@ -431,23 +440,6 @@ describe("Testing GitFactory", function() {
       const repositoryNames = await gitFactory.getRepositoryNames();
       expect(repositoryNames.length).to.be.equal(1);
       expect(repositoryNames).to.deep.equal(['TestRepo']);
-
-      // get the second git repository of the same user who just deleted his repository
-      // userRepoHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
-      // repository = await gitFactory.getRepository(userRepoHash);
-      
-      // let repo = await gitRepoFactory.attach(repository.location);
-      // let newRepoInfo = await repo.getRepositoryInfo();
-      // console.log(newRepoInfo)
-      // // expect(newRepoInfo.userIndex).to.be.equal(repoInfo.userIndex);
-
-      // // get repository of the second user
-      // userRepoHash = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
-      // repository = await gitFactory.getRepository(userRepoHash);
-      
-      // repo = await gitRepoFactory.attach(repository.location);
-      // newRepoInfo = await repo.getRepositoryInfo();
-      // console.log(newRepoInfo);
     });
 
     it("Deleting first two repositories to check if repo index in the second repo in the name list is updated", async function() {

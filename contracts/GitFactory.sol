@@ -3,6 +3,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./GitRepositoryDeployer.sol";
+import "./GitContractRegistry.sol";
 import "./GitRepository.sol";
 import "./facets/DiamondCutFacet.sol";
 import "./Ownable.sol";
@@ -18,17 +19,20 @@ contract GitFactory is Ownable {
     // address of deplyer contract
     GitRepositoryDeployer private deployer;
 
+    GitContractRegistry private gitContractRegistry;
+
     // Struct from LibGitFactory, which stores all repository related information
     LibGitFactory.Repositories private _repoData;
     
     // array of FacetCuts structs
     IDiamondCut.FacetCut[] public diamondCuts;
 
-    constructor(IDiamondCut.FacetCut[] memory _diamondCut, GitRepositoryDeployer d) {
+    constructor(IDiamondCut.FacetCut[] memory _diamondCut, GitRepositoryDeployer d, GitContractRegistry _gitContractRegistry) {
         for(uint i = 0; i < _diamondCut.length; i++){
             diamondCuts.push(_diamondCut[i]);
         }
         deployer = d;
+        gitContractRegistry = _gitContractRegistry;
     }
 
     /**
@@ -50,6 +54,7 @@ contract GitFactory is Ownable {
             GitRepository.RepositoryArgs({
                 owner: msg.sender,
                 factory: this,
+                registry: gitContractRegistry,
                 name: _repoName,
                 userIndex: _repoData.reposUserList[_repoName].length,
                 repoIndex: _repoData.usersRepoList[msg.sender].length

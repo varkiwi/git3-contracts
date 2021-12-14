@@ -7,7 +7,7 @@ const { FacetCutAction} = require("./utils/facetCutAction");
 const { ethers } = require("ethers");
 
 
-describe("Testing Git Repository", function() {
+describe("Testing Git Issues of Git Repository", function() {
   const repoName = "TestRepo";
   const issueCid = "Test123";
   const issueBountyCid = "bountyCid";
@@ -50,7 +50,17 @@ describe("Testing Git Repository", function() {
       [gitIssuesFacet.address, FacetCutAction.Add, getSelectors(gitIssuesFacet.functions)]
     ];
 
-    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
+    diamondCut2 = [
+        [diamondCutFacet.address, getSelectors(diamondCutFacet.functions)],
+        [diamondLoupeFacet.address, getSelectors(diamondLoupeFacet.functions)],
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
+        [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions)]
+      ];
+
+    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut2]);
+    await gitContractRegistry.deployed();
+
+    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
     await gitFactory.deployed();
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);

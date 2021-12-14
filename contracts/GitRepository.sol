@@ -10,6 +10,7 @@ pragma experimental ABIEncoderV2;
 /******************************************************************************/
 
 import "./GitFactory.sol";
+import "./GitContractRegistry.sol";
 import "./libraries/LibGitRepository.sol";
 import "./interfaces/IDiamondLoupe.sol";
 import "./interfaces/IDiamondCut.sol";
@@ -22,14 +23,18 @@ contract GitRepository {
     struct RepositoryArgs {
         address owner;
         GitFactory factory;
+        GitContractRegistry registry;
         string name; 
         uint userIndex;
         uint repoIndex;
     }
 
+    GitContractRegistry public registry;
+
     constructor(IDiamondCut.FacetCut[] memory _diamondCut, RepositoryArgs memory _args) payable {
         LibGitRepository.diamondCut(_diamondCut, address(0), new bytes(0));
         LibGitRepository.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex, _args.owner);
+        registry = _args.registry;
         LibGitRepository.DiamondStorage storage ds = LibGitRepository.diamondStorage();
 
         // adding ERC165 data

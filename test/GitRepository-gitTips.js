@@ -38,7 +38,17 @@ describe("Testing Git Tips", function() {
       [gitTipsFacet.address, FacetCutAction.Add, getSelectors(gitTipsFacet.functions)]
     ];
 
-    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
+    diamondCut2 = [
+        [diamondCutFacet.address, getSelectors(diamondCutFacet.functions)],
+        [diamondLoupeFacet.address, getSelectors(diamondLoupeFacet.functions)],
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
+        [gitTipsFacet.address, getSelectors(gitTipsFacet.functions)]
+      ];
+
+    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut2]);
+    await gitContractRegistry.deployed();
+
+    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
     await gitFactory.deployed();
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);

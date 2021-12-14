@@ -6,7 +6,7 @@ const { getSelectors } = require("./utils/getSelectors");
 const { FacetCutAction} = require("./utils/facetCutAction");
 
 
-describe("Testing Git Repository", function() {
+describe("Testing Git Branch of Git Repository", function() {
   const repoName = "TestRepo";
 
 //   const provider = waffle.provider;
@@ -38,7 +38,17 @@ describe("Testing Git Repository", function() {
       [gitBranchFacet.address, FacetCutAction.Add, getSelectors(gitBranchFacet.functions)]
     ];
 
-    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
+    diamondCut2 = [
+        [diamondCutFacet.address, getSelectors(diamondCutFacet.functions)],
+        [diamondLoupeFacet.address, getSelectors(diamondLoupeFacet.functions)],
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
+        [gitBranchFacet.address, getSelectors(gitBranchFacet.functions)]
+      ];
+
+    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut2]);
+    await gitContractRegistry.deployed();
+
+    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
     await gitFactory.deployed();
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
