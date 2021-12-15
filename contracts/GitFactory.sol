@@ -23,14 +23,8 @@ contract GitFactory is Ownable {
 
     // Struct from LibGitFactory, which stores all repository related information
     LibGitFactory.Repositories private _repoData;
-    
-    // array of FacetCuts structs
-    IDiamondCut.FacetCut[] public diamondCuts;
 
-    constructor(IDiamondCut.FacetCut[] memory _diamondCut, GitRepositoryDeployer d, GitContractRegistry _gitContractRegistry) {
-        for(uint i = 0; i < _diamondCut.length; i++){
-            diamondCuts.push(_diamondCut[i]);
-        }
+    constructor(GitRepositoryDeployer d, GitContractRegistry _gitContractRegistry) {
         deployer = d;
         gitContractRegistry = _gitContractRegistry;
     }
@@ -50,7 +44,7 @@ contract GitFactory is Ownable {
         
         // deploying new contract
         GitRepository newGitRepo = deployer.deployContract(
-            diamondCuts, 
+            // diamondCuts, 
             GitRepository.RepositoryArgs({
                 owner: msg.sender,
                 factory: this,
@@ -143,61 +137,6 @@ contract GitFactory is Ownable {
     function getRepository(bytes32 location) view public returns (LibGitFactory.Repository memory) {
         return LibGitFactory.getRepository(_repoData, location);
     }
-
-    // /**
-    //  * Allows to add a facet contract which is used to add to every new created git repository contract.
-    //  *
-    //  * @param _diamondCut (IDiamondCut.FacetCut) - FacetCut struct with the information of the new facet contract
-    //  */
-    // function addFacet(IDiamondCut.FacetCut memory _diamondCut) public onlyOwner {
-    //     diamondCuts.push(_diamondCut);
-    // }
-
-    // /**
-    //  * Allows to remove a facet contract. Whenever a new git repository is created, this facet won't be added to it.
-    //  * All git repositorys which had been deployed before this function call, will still have the facet. It needs to be
-    //  * removed manually.
-    //  *
-    //  * @param index (uint) - Index of the facet which should be reomved from the diamondCuts list
-    //  */
-    // function removeFacet(uint index) public onlyOwner {
-    //     require(index < diamondCuts.length, "Index out of bounds");
-    //     if (index == diamondCuts.length - 1) {
-    //         diamondCuts.pop();
-    //     } else {
-    //         diamondCuts[index] = diamondCuts[diamondCuts.length - 1];
-    //         diamondCuts.pop();
-    //     }
-    // }
-
-    // /**
-    //  * This function is used to replace a facet contract at the given index in the diamondCuts list.
-    //  *
-    //  * @param _diamondCut (IDiamondCut.FacetCut) - The new facet contract information
-    //  * @param index (uint) - The index in the diamondCuts list which is replaced with the new facet
-    //  */
-    // function replaceFacet(IDiamondCut.FacetCut memory _diamondCut, uint index) public onlyOwner {
-    //     require(index < diamondCuts.length, "Index out of bounds");
-    //     diamondCuts[index] = _diamondCut;
-    // }
-
-    // /**
-    //  * This function is used to updated the facets of already deployed Git Repositories
-    //  *
-    //  * @param reposAddress (address) - The address of the git repository to be updated
-    //  * @param _diamondCut (IDiamondCut.FacetCut) - The new facet contract information
-    //  * @param _init //TODO: Check out this parameter in regards the diamond spec
-    //  * @param _calldata //TODO: Check out this parameter in regards the diamond spec
-    //  */
-    // function updateRepositoriesFacets(
-    //     address reposAddress,
-    //     IDiamondCut.FacetCut[] calldata _diamondCut,
-    //     address _init,
-    //     bytes calldata _calldata
-    // ) public onlyOwner {
-    //     DiamondCutFacet repo = DiamondCutFacet(reposAddress);
-    //     repo.diamondCut(_diamondCut, _init, _calldata);
-    // }
     
     /**
      * Receive function in order to receive tips. No calldata is set

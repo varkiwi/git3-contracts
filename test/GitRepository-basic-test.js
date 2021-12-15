@@ -15,32 +15,20 @@ describe("Testing Git Repository", function() {
     ACCOUNTS = await ethers.getSigners()
     DEFAULT_ACCOUNT_ADDRESS = ACCOUNTS[0].address;
 
-    // diamondCutFacet = await deployContract("DiamondCutFacet");
-    // diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     deployer = await deployContract("GitRepositoryDeployer");
 
-    // await diamondCutFacet.deployed();
-    // await diamondLoupeFacet.deployed();
     await gitRepositoryManagementFacet.deployed();
     await deployer.deployed();
 
-    // diamondCut = [
-    //   [diamondCutFacet.address, FacetCutAction.Add, getSelectors(diamondCutFacet.functions)],
-    //   [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)],
-    //   [gitRepositoryManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepositoryManagementFacet.functions)]
-    // ];
-
     diamondCut = [
-        // [diamondCutFacet.address, getSelectors(diamondCutFacet.functions)],
-        // [diamondLoupeFacet.address, getSelectors(diamondLoupeFacet.functions)],
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)]
       ];
 
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
     await gitContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
+    gitFactory = await deployContract("GitFactory", [deployer.address, gitContractRegistry.address]);
     await gitFactory.deployed();
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);

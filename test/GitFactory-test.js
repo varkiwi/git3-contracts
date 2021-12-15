@@ -33,7 +33,7 @@ describe("Testing GitFactory", function() {
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
     await gitContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
+    gitFactory = await deployContract("GitFactory", [deployer.address, gitContractRegistry.address]);
     await gitFactory.deployed();
   })
 
@@ -126,7 +126,7 @@ describe("Testing GitFactory", function() {
       gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
       await gitContractRegistry.deployed();
   
-      gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
+      gitFactory = await deployContract("GitFactory", [deployer.address, gitContractRegistry.address]);
       await gitFactory.deployed();
       
       await gitFactory.createRepository(repoName);

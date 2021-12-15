@@ -4,19 +4,11 @@ pragma experimental ABIEncoderV2;
 
 /******************************************************************************\
 * Author: Jacek Varky <jaca347@protonmail.com> (https://twitter.com/git314)
-* Smart Contract representing a Git repository based on EIP-2535 Diamond Standard
-* https://eips.ethereum.org/EIPS/eip-2535
-* 
 /******************************************************************************/
 
 import "./GitFactory.sol";
 import "./GitContractRegistry.sol";
 import "./libraries/LibGitRepository.sol";
-import "./interfaces/IDiamondLoupe.sol";
-import "./interfaces/IDiamondCut.sol";
-import "./interfaces/IERC173.sol";
-import "./interfaces/IERC165.sol";
-import "hardhat/console.sol";
 
 contract GitRepository {
     // more arguments are added to this struct
@@ -29,17 +21,8 @@ contract GitRepository {
         uint repoIndex;
     }
 
-    constructor(IDiamondCut.FacetCut[] memory _diamondCut, RepositoryArgs memory _args) payable {
-        // LibGitRepository.diamondCut(_diamondCut, address(0), new bytes(0));
+    constructor(RepositoryArgs memory _args) payable {
         LibGitRepository.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex, _args.owner);
-        // registry = _args.registry;
-        // LibGitRepository.DiamondStorage storage ds = LibGitRepository.diamondStorage();
-
-        // adding ERC165 data
-        // ds.supportedInterfaces[type(IERC165).interfaceId] = true;
-        // ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
-        // ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
-        // ds.supportedInterfaces[type(IERC173).interfaceId] = true;
     }
 
     // Find facet for function that is called and execute the

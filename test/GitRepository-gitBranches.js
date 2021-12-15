@@ -35,7 +35,7 @@ describe("Testing Git Branch of Git Repository", function() {
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
     await gitContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
+    gitFactory = await deployContract("GitFactory", [deployer.address, gitContractRegistry.address]);
     await gitFactory.deployed();
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
