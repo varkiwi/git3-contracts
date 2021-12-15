@@ -2,7 +2,7 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "./GitRepositoryDeployer.sol";
+// import "./GitRepositoryDeployer.sol";
 import "./GitContractRegistry.sol";
 import "./GitRepository.sol";
 import "./Ownable.sol";
@@ -15,15 +15,15 @@ contract GitFactory is Ownable {
     uint256 public tips;
 
     // address of deplyer contract
-    GitRepositoryDeployer private deployer;
+    // GitRepositoryDeployer private deployer;
 
     GitContractRegistry public gitContractRegistry;
 
     // Struct from LibGitFactory, which stores all repository related information
     LibGitFactory.Repositories private _repoData;
 
-    constructor(GitRepositoryDeployer d, GitContractRegistry _gitContractRegistry) {
-        deployer = d;
+    constructor(GitContractRegistry _gitContractRegistry) {
+        // deployer = d;
         gitContractRegistry = _gitContractRegistry;
     }
 
@@ -39,18 +39,15 @@ contract GitFactory is Ownable {
 
         // check if the key has already an active repository
         require(!_repoData.repositoryList[key].isActive, 'Repository exists already');
-        
-        // deploying new contract
-        GitRepository newGitRepo = deployer.deployContract(
-            // diamondCuts, 
+        GitRepository newGitRepo = new GitRepository(
             GitRepository.RepositoryArgs({
                 owner: msg.sender,
                 factory: this,
                 name: _repoName,
                 userIndex: _repoData.reposUserList[_repoName].length,
                 repoIndex: _repoData.usersRepoList[msg.sender].length
-            })
-        );
+            }
+        ));
 
         LibGitFactory.addRepository(_repoData, key, _repoName, newGitRepo, msg.sender);
         emit NewRepositoryCreated(_repoName, msg.sender);

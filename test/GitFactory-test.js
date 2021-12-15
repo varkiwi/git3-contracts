@@ -14,7 +14,7 @@ describe("Testing GitFactory", function() {
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, gitRepositoryManagementFacet, deployer;
+  let gitFactory, gitRepositoryManagementFacet;
   let gitContractRegistry;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -23,17 +23,15 @@ describe("Testing GitFactory", function() {
     DEFAULT_ACCOUNT_ADDRESS = ACCOUNTS[0].address;
 
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
-    deployer = await deployContract("GitRepositoryDeployer");
 
     await gitRepositoryManagementFacet.deployed();
-    await deployer.deployed();
 
     const diamondCut = [];
     
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
     await gitContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [deployer.address, gitContractRegistry.address]);
+    gitFactory = await deployContract("GitFactory", [gitContractRegistry.address]);
     await gitFactory.deployed();
   })
 
@@ -126,7 +124,7 @@ describe("Testing GitFactory", function() {
       gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
       await gitContractRegistry.deployed();
   
-      gitFactory = await deployContract("GitFactory", [deployer.address, gitContractRegistry.address]);
+      gitFactory = await deployContract("GitFactory", [gitContractRegistry.address]);
       await gitFactory.deployed();
       
       await gitFactory.createRepository(repoName);

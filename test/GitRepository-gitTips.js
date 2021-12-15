@@ -13,7 +13,7 @@ describe("Testing Git Tips", function() {
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, diamondCutFacet, diamondLoupeFacet, gitRepositoryManagementFacet, deployer, gitRepositoryLocation, diamondCut, gitTips;
+  let gitFactory, gitRepositoryManagementFacet, gitRepositoryLocation, diamondCut, gitTips;
 
   before(async function(){
     ACCOUNTS = await ethers.getSigners()
@@ -21,11 +21,9 @@ describe("Testing Git Tips", function() {
 
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     gitTipsFacet = await deployContract("GitTips");
-    deployer = await deployContract("GitRepositoryDeployer");
 
     await gitRepositoryManagementFacet.deployed();
     await gitTipsFacet.deployed();
-    await deployer.deployed();
 
     diamondCut = [
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
@@ -35,7 +33,7 @@ describe("Testing Git Tips", function() {
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
     await gitContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [deployer.address, gitContractRegistry.address]);
+    gitFactory = await deployContract("GitFactory", [gitContractRegistry.address]);
     await gitFactory.deployed();
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
