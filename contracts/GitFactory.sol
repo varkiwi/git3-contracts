@@ -229,47 +229,38 @@ contract GitFactory is Ownable {
         return _repoData.usersRepoList[_owner];
     }
     
-    // /**
-    //  * Returns all user addresses owning a repository by the given name.
-    //  * 
-    //  * @param _repoName (string) - Repository name
-    //  * 
-    //  * @return (address[]) - An array containing all owner addresses having a repository with the given name
-    //  */ 
-    // function getRepositoriesUserList(string memory _repoName) view public returns (address[] memory) {
-    //     return LibGitFactory.getRepositoriesUserList(_repoData, _repoName);
-    // }
+    /**
+     * Returns all user addresses owning a repository by the given name.
+     * 
+     * @param _repoName (string) - Repository name
+     * 
+     * @return (address[]) - An array containing all owner addresses having a repository with the given name
+     */ 
     function getRepositoriesUserList(string memory _repoName) view public returns (address[] memory) {
         return _repoData.reposUserList[_repoName];
     }
     
     
-    // /**
-    //  * Returns the keccak256 hash generated over a user's address and a repository name.
-    //  * 
-    //  * @param _owner (address) - The address of a repository owner
-    //  * @param _repoName (string) - The name of a repository 
-    //  * 
-    //  * @return (bytes32) - The keccak256(_owner, _repoName) hash 
-    //  */
-    // function getUserRepoNameHash(address _owner, string memory _repoName) pure public returns (bytes32) {
-    //     return LibGitFactory.getUserRepoNameHash(_owner, _repoName);
-    // }
+    /**
+     * Returns the keccak256 hash generated over a user's address and a repository name.
+     * 
+     * @param _owner (address) - The address of a repository owner
+     * @param _repoName (string) - The name of a repository 
+     * 
+     * @return (bytes32) - The keccak256(_owner, _repoName) hash 
+     */
     function getUserRepoNameHash(address _owner, string memory _repoName) pure public returns (bytes32) {
         return keccak256(abi.encode(_owner, _repoName));
     }
 
-    // /**
-    //  * This function returns a Repository struct which contains the address of the contract representing a 
-    //  * git repository and if it is active.
-    //  * 
-    //  * @param location (bytes32) - Location of the git repository information. Location := keccak(owner, repo name)
-    //  * 
-    //  * @return (LibGitFactory.Repository) - The repository struct
-    //  */
-    // function getRepository(bytes32 location) view public returns (LibGitFactory.Repository memory) {
-    //     return LibGitFactory.getRepository(_repoData, location);
-    // }
+    /**
+     * This function returns a Repository struct which contains the address of the contract representing a 
+     * git repository and if it is active.
+     * 
+     * @param location (bytes32) - Location of the git repository information. Location := keccak(owner, repo name)
+     * 
+     * @return (LibGitFactory.Repository) - The repository struct
+     */
     function getRepository(bytes32 location) view public returns (Repository memory) {
         return _repoData.repositoryList[location];
     }
