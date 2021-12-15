@@ -125,35 +125,16 @@ contract GitFactory is Ownable {
      * repoIndex (describes at what position the repositories name is written in the usersRepoList array). It removes 
      * the values from the arrays and reorganizes them.
      * 
-     * This function should be called only by GitRepository contracts.
-     * 
-     * @param _repoName (string) - The name of the repository to be removed
-     * @param _userIndex (uint256) - The position the of the repositories owner in the reposUserList
-     * @param _repoName (uint256) - The position of the repositories name in the usersRepoList
-     */
-    function removeRepository(string memory _repoName, uint256 _userIndex, uint256 _repoIndex) public {
-        _removeRepository(_repoName, _userIndex, _repoIndex);
-    }
-
-    /**
-     * Used to remove a repository from the internal 'database'. It takes the owner of the repository, the repository name,
-     * the userIndex (describes at what position the owner's address is written in the reposUserList array) and the 
-     * repoIndex (describes at what position the repositories name is written in the usersRepoList array). It removes 
-     * the values from the arrays and reorganizes them.
-     * 
-     * This function should be called only by GitRepository contracts.
-     * 
      * @param repoName (string) - The name of the repository to be removed
      * @param userIndex (uint256) - The position the of the repositories owner in the reposUserList
      * @param repoName (uint256) - The position of the repositories name in the usersRepoList
      */
-    function _removeRepository(
+    function removeRepository(
         string memory repoName,
         uint256 userIndex, 
         uint256 repoIndex
-    ) internal {
+    ) public {
         bytes32 key = getUserRepoNameHash(msg.sender, repoName);
-        //TODO: Check who is allowed to remove a repository
         // check if the key has already an active repository
         require(_repoData.repositoryList[key].isActive, "Repository doesn't exist");
         GitRepositoryManagement repoToDelete = GitRepositoryManagement(address(_repoData.repositoryList[key].location));
