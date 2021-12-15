@@ -5,12 +5,6 @@ import "../GitFactory.sol";
 import "../libraries/LibGitRepository.sol";
 
 contract GitRepositoryManagement {
-
-    struct FacetAddressAndSelectorPosition {
-        address facetAddress;
-        uint16 selectorPosition;
-    }
-
     // Returns the struct from a specified position in contract storage
     // ds is short for DiamondStorage
     function repositoryInformation() internal pure returns(LibGitRepository.RepositoryInformation storage ds) {

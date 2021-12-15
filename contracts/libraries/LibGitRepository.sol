@@ -7,13 +7,7 @@ import "../GitFactory.sol";
 library LibGitRepository {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
     bytes32 constant REPO_INFO_POSITION = keccak256("diamond.standard.git.repositoryInformation");
-
-    struct FacetAddressAndSelectorPosition {
-        address facetAddress;
-        uint16 selectorPosition;
-    }
 
     struct RepositoryInformation {
         // owner of the contract
