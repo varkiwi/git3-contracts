@@ -2,15 +2,9 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
-/******************************************************************************\
-* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
-* EIP-2535 Diamond Standard: https://eips.ethereum.org/EIPS/eip-2535
-/******************************************************************************/
-import "../interfaces/IDiamondCut.sol";
 import "../GitFactory.sol";
 
 library LibGitRepository {
-    event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
@@ -53,9 +47,5 @@ library LibGitRepository {
         ri.contractOwner = _newOwner;
         ri.donations = 0;
         emit OwnershipTransferred(previousOwner, _newOwner);
-    }
-
-    function contractOwner() internal view returns (address contractOwner_) {
-        contractOwner_ = repositoryInformation().contractOwner;
     }
 }
