@@ -5,9 +5,7 @@ pragma experimental ABIEncoderV2;
 import "./GitRepositoryDeployer.sol";
 import "./GitContractRegistry.sol";
 import "./GitRepository.sol";
-import "./facets/DiamondCutFacet.sol";
 import "./Ownable.sol";
-import "./interfaces/IDiamondCut.sol";
 import "./libraries/LibGitFactory.sol";
 
 contract GitFactory is Ownable {
