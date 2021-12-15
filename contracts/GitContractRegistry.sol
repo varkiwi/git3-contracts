@@ -32,4 +32,20 @@ contract GitContractRegistry {
         }
     }
 
+    function getContractAddress(bytes4 _functionSelector) public view returns (address) {
+        Index storage index = contractAddressIndex[_functionSelector];
+        if(!index.isActive) {
+            revert();
+        }
+        return contractAddress[index.index];
+    }
+
+    function addContractAddress(address _contractAddress, bytes4[] calldata _functionSelectors) public {
+        contractAddress[freeIndex] = _contractAddress;
+        for(uint i = 0; i < _functionSelectors.length; i++){
+            contractAddressIndex[_functionSelectors[i]] = Index({isActive: true, index: freeIndex});
+        }
+        freeIndex += 1;
+    }
+
 }

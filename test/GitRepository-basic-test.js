@@ -15,29 +15,29 @@ describe("Testing Git Repository", function() {
     ACCOUNTS = await ethers.getSigners()
     DEFAULT_ACCOUNT_ADDRESS = ACCOUNTS[0].address;
 
-    diamondCutFacet = await deployContract("DiamondCutFacet");
-    diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
+    // diamondCutFacet = await deployContract("DiamondCutFacet");
+    // diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     deployer = await deployContract("GitRepositoryDeployer");
 
-    await diamondCutFacet.deployed();
-    await diamondLoupeFacet.deployed();
+    // await diamondCutFacet.deployed();
+    // await diamondLoupeFacet.deployed();
     await gitRepositoryManagementFacet.deployed();
     await deployer.deployed();
 
-    diamondCut = [
-      [diamondCutFacet.address, FacetCutAction.Add, getSelectors(diamondCutFacet.functions)],
-      [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)],
-      [gitRepositoryManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepositoryManagementFacet.functions)]
-    ];
+    // diamondCut = [
+    //   [diamondCutFacet.address, FacetCutAction.Add, getSelectors(diamondCutFacet.functions)],
+    //   [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)],
+    //   [gitRepositoryManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepositoryManagementFacet.functions)]
+    // ];
 
-    diamondCut2 = [
-        [diamondCutFacet.address, getSelectors(diamondCutFacet.functions)],
-        [diamondLoupeFacet.address, getSelectors(diamondLoupeFacet.functions)],
+    diamondCut = [
+        // [diamondCutFacet.address, getSelectors(diamondCutFacet.functions)],
+        // [diamondLoupeFacet.address, getSelectors(diamondLoupeFacet.functions)],
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)]
       ];
 
-    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut2]);
+    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
     await gitContractRegistry.deployed();
 
     gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);
@@ -45,130 +45,6 @@ describe("Testing Git Repository", function() {
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
     gitRepositoryLocation = await gitFactory.getRepository(userRepoNameHash);
-  });
-
-  describe("Testing DiamondLoupeFacet of GitRepository", function(){
-    describe("Testing facets function", function(){
-      it("Verifying that address of DiamondLoup contract is equal", async function(){
-        const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-        const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-        const facets = await diamondLoupe.facets();
-
-        expect(facets.length).to.be.equal(3);
-        expect(facets[1].facetAddress).to.be.equal(diamondLoupeFacet.address);
-      });
-    });
-    
-    describe("Testing facetFunctionSelectors", function(){
-      it("Verifying that returned facets are correct", async function(){
-        const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-        const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-
-        const facets = await diamondLoupe.facets();
-
-        for(let facet of facets) {
-          fctSelector = await diamondLoupe.facetFunctionSelectors(facet.facetAddress);
-
-          if (facet.facetAddress === diamondCutFacet.address) {
-            expect(fctSelector).to.deep.equal(getSelectors(diamondCutFacet.functions));
-          } else if (facet.facetAddress === diamondLoupeFacet.address) {
-            expect(fctSelector).to.deep.equal(getSelectors(diamondLoupeFacet.functions));
-          } else if (facet.facetAddress === gitRepositoryManagementFacet.address) {
-            expect(fctSelector).to.deep.equal(getSelectors(gitRepositoryManagementFacet.functions));
-          } else {
-            assert.fail(`Unknown facet with address ${facet.facetAddress}`);
-          }
-        }
-      });
-    });
-
-    describe("Testing facetAddresses function", function(){
-      it("Verifying that we get the correct number of facet addresses", async function() {
-        const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-        const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-
-        const facetAddresses = await diamondLoupe.facetAddresses();
-
-        expect(facetAddresses.length).to.be.equal(3);
-        let addresses = [];
-
-        for(let facet of diamondCut) {
-          addresses.push(facet[0]);
-        };
-        expect(addresses).to.deep.equal(facetAddresses);
-      });
-    });
-
-    describe("Testing facetAddress function", function() {
-      it("Verifying that facetAddress matches to address", async function() {
-        const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-        const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-        let address;
-        for(let facet of diamondCut) {
-          for(let fctSelector of facet[2]){
-            address = await diamondLoupe.facetAddress(fctSelector);
-            expect(address).to.be.equal(facet[0]);
-          };
-        };
-      });
-    });
-
-    describe("Testing supportsInterface function", function() {
-      it("Checking for unavailable interface", async function() {
-        const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-        const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-        const supportsInterface = await diamondLoupe.supportsInterface('0xaabbccdd');
-        expect(supportsInterface).to.be.equal(false);
-      });
-
-      it("Checking for available interface", async function() {
-        const diamondLoupeFactory = await hre.ethers.getContractFactory("DiamondLoupeFacet");
-        const diamondLoupe = await diamondLoupeFactory.attach(gitRepositoryLocation.location);
-        //0x01ffc9a7 is ERC165 interface
-        const supportsInterface = await diamondLoupe.supportsInterface('0x01ffc9a7');
-        expect(supportsInterface).to.be.equal(true);
-      });
-    });
-  });
-  
-  describe("Testing DiamondCutFacet of GitRepository", function(){
-    describe("Testing diamondCut function", function(){
-      it("Verifying that DiamondCutFacet doesn't allow owner to add facets", async function(){
-        const diamondCutFactory = await hre.ethers.getContractFactory("DiamondCutFacet");
-        const diamondCut = await diamondCutFactory.attach(gitRepositoryLocation.location);
-
-        let gitBranch = await deployContract("GitBranch");
-        await gitBranch.deployed();
-        diamondCutParam = [
-          [gitBranch.address, FacetCutAction.Add, getSelectors(gitBranch.functions)]
-        ];
-
-        await expect(diamondCut.diamondCut(
-          diamondCutParam,
-          "0x0000000000000000000000000000000000000000",
-          "0x"
-        )).to.be.revertedWith("LibD: Must be factory");
-      });
-
-      it("Verifying that DiamondCutFacet doesn't allow non-owner to add facets", async function(){
-        const diamondCutFactory = await hre.ethers.getContractFactory("DiamondCutFacet");
-        const diamondCut = await diamondCutFactory.attach(gitRepositoryLocation.location);
-
-        let gitBranch = await deployContract("GitBranch");
-        await gitBranch.deployed();
-        diamondCutParam = [
-          [gitBranch.address, FacetCutAction.Add, getSelectors(gitBranch.functions)]
-        ];
-
-        await expect(diamondCut.connect(ACCOUNTS[1]).diamondCut(
-          diamondCutParam,
-          "0x0000000000000000000000000000000000000000",
-          "0x"
-        )).to.be.revertedWith("LibD: Must be factory");
-      });
-
-      //TODO: Add tests for add, replace and remove!
-    });
   });
 
   describe("Testing GitRepositoryManagement of GitRepository", function(){

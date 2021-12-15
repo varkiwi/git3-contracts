@@ -16,6 +16,7 @@ import "./interfaces/IDiamondLoupe.sol";
 import "./interfaces/IDiamondCut.sol";
 import "./interfaces/IERC173.sol";
 import "./interfaces/IERC165.sol";
+import "hardhat/console.sol";
 
 contract GitRepository {
     // more arguments are added to this struct
@@ -23,36 +24,32 @@ contract GitRepository {
     struct RepositoryArgs {
         address owner;
         GitFactory factory;
-        GitContractRegistry registry;
         string name; 
         uint userIndex;
         uint repoIndex;
     }
 
-    GitContractRegistry public registry;
-
     constructor(IDiamondCut.FacetCut[] memory _diamondCut, RepositoryArgs memory _args) payable {
-        LibGitRepository.diamondCut(_diamondCut, address(0), new bytes(0));
+        // LibGitRepository.diamondCut(_diamondCut, address(0), new bytes(0));
         LibGitRepository.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex, _args.owner);
-        registry = _args.registry;
-        LibGitRepository.DiamondStorage storage ds = LibGitRepository.diamondStorage();
+        // registry = _args.registry;
+        // LibGitRepository.DiamondStorage storage ds = LibGitRepository.diamondStorage();
 
         // adding ERC165 data
-        ds.supportedInterfaces[type(IERC165).interfaceId] = true;
-        ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
-        ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
-        ds.supportedInterfaces[type(IERC173).interfaceId] = true;
+        // ds.supportedInterfaces[type(IERC165).interfaceId] = true;
+        // ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
+        // ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
+        // ds.supportedInterfaces[type(IERC173).interfaceId] = true;
     }
 
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
-        LibGitRepository.DiamondStorage storage ds;
-        bytes32 position = LibGitRepository.DIAMOND_STORAGE_POSITION;
-        assembly {
-            ds.slot := position
-        }
-        address facet = address(bytes20(ds.facetAddressAndSelectorPosition[msg.sig].facetAddress));
+        LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
+        GitFactory factory = ri.factory;
+        GitContractRegistry registry = factory.gitContractRegistry();
+        address facet = registry.getContractAddress(msg.sig);
+
         require(facet != address(0), "Diamond: Function does not exist");
         assembly {
             calldatacopy(0, 0, calldatasize())

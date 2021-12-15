@@ -13,7 +13,7 @@ interface IDiamondCut {
 
     struct FacetCut {
         address facetAddress;
-        FacetCutAction action;
+        // FacetCutAction action;
         bytes4[] functionSelectors;
     }
 

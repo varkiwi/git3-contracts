@@ -19,33 +19,20 @@ describe("Testing Git Tips", function() {
     ACCOUNTS = await ethers.getSigners()
     DEFAULT_ACCOUNT_ADDRESS = ACCOUNTS[0].address;
 
-    diamondCutFacet = await deployContract("DiamondCutFacet");
-    diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     gitTipsFacet = await deployContract("GitTips");
     deployer = await deployContract("GitRepositoryDeployer");
 
-    await diamondCutFacet.deployed();
-    await diamondLoupeFacet.deployed();
     await gitRepositoryManagementFacet.deployed();
     await gitTipsFacet.deployed();
     await deployer.deployed();
 
     diamondCut = [
-      [diamondCutFacet.address, FacetCutAction.Add, getSelectors(diamondCutFacet.functions)],
-      [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)],
-      [gitRepositoryManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepositoryManagementFacet.functions)],
-      [gitTipsFacet.address, FacetCutAction.Add, getSelectors(gitTipsFacet.functions)]
-    ];
-
-    diamondCut2 = [
-        [diamondCutFacet.address, getSelectors(diamondCutFacet.functions)],
-        [diamondLoupeFacet.address, getSelectors(diamondLoupeFacet.functions)],
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
         [gitTipsFacet.address, getSelectors(gitTipsFacet.functions)]
       ];
 
-    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut2]);
+    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
     await gitContractRegistry.deployed();
 
     gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address, gitContractRegistry.address]);

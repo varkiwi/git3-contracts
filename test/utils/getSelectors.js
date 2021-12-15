@@ -7,7 +7,7 @@ const getSelectors = (contractFunctions, output=false) => {
         // starting with c_0x and random hex values
         if (func.includes('(') && !func.includes('c_0x')) {
             if (output) {
-                console.log('func', func);
+                console.log('Function:', func, web3Abi.encodeFunctionSignature(func));
             }
             selectors.push(web3Abi.encodeFunctionSignature(func));
         }
