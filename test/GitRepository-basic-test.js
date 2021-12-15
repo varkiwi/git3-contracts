@@ -1,8 +1,7 @@
-const { expect, assert } = require("chai");
+const { expect } = require("chai");
 
 const { deployContract } = require("./utils/deployContract");
 const { getSelectors } = require("./utils/getSelectors");
-const { FacetCutAction} = require("./utils/facetCutAction");
 
 describe("Testing Git Repository", function() {
   const repoName = "TestRepo";

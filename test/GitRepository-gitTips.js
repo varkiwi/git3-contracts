@@ -3,8 +3,6 @@ const { waffle } = require("hardhat");
 
 const { deployContract } = require("./utils/deployContract");
 const { getSelectors } = require("./utils/getSelectors");
-const { FacetCutAction} = require("./utils/facetCutAction");
-
 
 describe("Testing Git Tips", function() {
   const repoName = "TestRepo";

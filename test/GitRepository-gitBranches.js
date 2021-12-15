@@ -3,7 +3,6 @@ const { waffle } = require("hardhat");
 
 const { deployContract } = require("./utils/deployContract");
 const { getSelectors } = require("./utils/getSelectors");
-const { FacetCutAction} = require("./utils/facetCutAction");
 
 
 describe("Testing Git Branch of Git Repository", function() {

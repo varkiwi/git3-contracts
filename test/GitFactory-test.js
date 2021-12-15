@@ -5,8 +5,6 @@ const provider = waffle.provider;
 const { getDiamondCuts } = require("./utils/getDiamondCuts");
 const { deployContract } = require("./utils/deployContract");
 const { getSelectors } = require("./utils/getSelectors");
-const { FacetCutAction} = require("./utils/facetCutAction");
-
 
 describe("Testing GitFactory", function() {
   const repoName = "TestRepo";
