@@ -17,6 +17,7 @@ contract GitRepositoryManagement {
         }
     }
 
+
     function getRepositoryInfo() public view returns (address contractOwner, GitFactory factory, string memory name, uint userIndex, uint repoIndex, uint donations) {
         LibGitRepository.RepositoryInformation storage ri = repositoryInformation();
         return (ri.contractOwner, ri.factory, ri.name, ri.userIndex, ri.repoIndex, ri.donations);
