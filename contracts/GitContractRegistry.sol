@@ -39,6 +39,12 @@ contract GitContractRegistry is Ownable {
         }
     }
 
+    /**
+     * Takes a function signature and returns the contract address that is responsible for the function.
+     *
+     * @param _functionSignature {bytes4} - 4 byte signature used to identify the function to be executed
+     * @return {address} - the address of the contract that is responsible for the function
+     */
     function getContractAddress(bytes4 _functionSelector) public view returns (address) {
         Index storage index = contractAddressIndex[_functionSelector];
         if(!index.isActive) {
@@ -47,6 +53,12 @@ contract GitContractRegistry is Ownable {
         return contractAddress[index.index].contractAddress;
     }
 
+    /**
+     * Registers a new contract address for a set function signatures.
+     *
+     * @param _contractAddress {address} - the address of the contract that is responsible for the function
+     * @param _functionSelectors {bytes4[]} - the function signatures that are handled by the contract
+     */
     function addContractAddress(address _contractAddress, bytes4[] calldata _functionSelectors) public onlyOwner {
         contractAddress[freeIndex] = Contract({isActive: true, contractAddress: _contractAddress});
         for(uint i = 0; i < _functionSelectors.length; i++){
@@ -55,6 +67,12 @@ contract GitContractRegistry is Ownable {
         freeIndex += 1;
     }
 
+    /**
+     * Deactives a contract address for a set function signatures.
+     *
+     * @param _contractAddress {address} - the address of the contract that is responsible for the function
+     * @param _functionSelectors {bytes4[]} - the function signatures that are handled by the contract
+     */
     function removeContractAddress(bytes4[] calldata _functionSelectors) public onlyOwner {
         for(uint i = 0; i < _functionSelectors.length; i++){
             contractAddressIndex[_functionSelectors[i]].isActive = false;
