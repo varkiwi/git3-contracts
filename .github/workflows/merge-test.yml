@@ -10,7 +10,8 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
