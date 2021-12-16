@@ -48,5 +48,7 @@ jobs:
           path: ~/.npm
           key: npm-${{ hashFiles('package-lock.json') }}
           restore-keys: npm-
+      
+      - name: Execute unit tests
         run: npx hardhat test
       
