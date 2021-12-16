@@ -91,7 +91,7 @@ jobs:
             ${{ runner.os }}-
       
       - name: Execute unit tests
-        run: 
-          - npx hardhat coverage
-          - cat coverage/lcov.info | coveralls
+        run: |
+          npx hardhat coverage
+          cat coverage/lcov.info | coveralls
       
