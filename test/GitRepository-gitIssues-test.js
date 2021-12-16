@@ -340,6 +340,58 @@ describe("Testing Git Issues of Git Repository", function() {
             );
         });
       });
+
+      describe("Opening, resolving and closing issue waiting for blocks to expire", function() {
+        // outside opens issue
+        it("Open another issue with a bounty", async function() {
+            await gitIssues.connect(OUTSIDER_ACCOUNT).openIssue(`${cid}-4`, {value: bounty});
+            const issues = await gitIssues.getAllIssues();
+            const issueHash = issues[issues.length - 1];
+            const issue = await gitIssues.getIssue(issueHash);
+
+            expect(issue.cid).to.be.equal(`${cid}-4`);
+            expect(issue.isActive).to.be.true;
+            expect(issue.state).to.be.equal(IssueState.Open);
+            expect(issue.bounty.toNumber()).to.be.equal(bounty);
+            expect(issue.opener).to.be.equal(OUTSIDER_ACCOUNT.address);
+            expect(issue.placeInList).to.be.equal(issues.length - 1);
+        });
+
+        it("Appending an answer and attaching a bounty", async function() {
+            const issues = await gitIssues.getAllIssues();
+            const issueHash = issues[issues.length - 1];
+            // in order to resolve an issue, we need to add a bounty first
+            await gitIssues.appendAnswerToIssue(issueHash, "SomeAnswerCID", {value: bounty});
+            const issue = await gitIssues.getIssue(issueHash);
+            expect(issue.bounty).to.be.equal(bounty.mul(2));
+            expect(issue.state).to.be.equal(IssueState.Open);
+        });
+
+        it("Resolving the issue", async function() {
+            const issues = await gitIssues.getAllIssues();
+            const issueHash = issues[issues.length - 1];
+            await gitIssues.connect(REPO_OWNER_ACCOUNT).updateIssueState(issueHash, IssueState.Resolved);
+            const issue = await gitIssues.getIssue(issueHash);
+            expect(issue.bounty).to.be.equal(bounty.mul(2));
+            expect(issue.state).to.be.equal(IssueState.Resolved);
+            expect(issue.resolver).to.be.equal(REPO_OWNER_ACCOUNT.address);
+        });
+
+        it("Close issue after block wait time expired", async function() {
+            const issues = await gitIssues.getAllIssues();
+            const issueHash = issues[issues.length - 1];
+            await expect(gitIssues.connect(REPO_OWNER_ACCOUNT).updateIssueState(issueHash, IssueState.Closed)).to.be.revertedWith("Can't close the issue");
+            let sendNoTx = 200;
+            for (; sendNoTx > 0; sendNoTx -= 1) {
+                await ACCOUNTS[0].sendTransaction({to: ACCOUNTS[1].address, value: 1});
+            }
+            await gitIssues.connect(REPO_OWNER_ACCOUNT).updateIssueState(issueHash, IssueState.Closed);
+            const issue = await gitIssues.getIssue(issueHash);
+            expect(issue.bounty).to.be.equal(0);
+            expect(issue.state).to.be.equal(IssueState.Closed);
+            expect(issue.resolver).to.be.equal(REPO_OWNER_ACCOUNT.address);
+        });
+      });
     });
   });
 });
