@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - issue-18
   pull_request:
     branches:
       - main
