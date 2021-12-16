@@ -42,7 +42,9 @@ function readPrivateKey(name) {
 module.exports = {
   solidity: "0.7.6",
   networks: {
-    hardhat: {},
+    hardhat: {
+        initialBaseFeePerGas: 0,
+    },
     maticTestnet: {
       url: "https://rpc-mumbai.maticvigil.com",
       //TODO: If I want to use the hardhat network, the key for matic is still read.
