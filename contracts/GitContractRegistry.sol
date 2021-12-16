@@ -42,7 +42,7 @@ contract GitContractRegistry is Ownable {
     /**
      * Takes a function signature and returns the contract address that is responsible for the function.
      *
-     * @param _functionSignature {bytes4} - 4 byte signature used to identify the function to be executed
+     * @param _functionSelector {bytes4} - 4 byte signature used to identify the function to be executed
      * @return {address} - the address of the contract that is responsible for the function
      */
     function getContractAddress(bytes4 _functionSelector) public view returns (address) {
@@ -70,7 +70,6 @@ contract GitContractRegistry is Ownable {
     /**
      * Deactives a contract address for a set function signatures.
      *
-     * @param _contractAddress {address} - the address of the contract that is responsible for the function
      * @param _functionSelectors {bytes4[]} - the function signatures that are handled by the contract
      */
     function removeContractAddress(bytes4[] calldata _functionSelectors) public onlyOwner {
