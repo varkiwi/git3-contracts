@@ -1,8 +1,5 @@
 name: test-contracts
 on: 
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -32,9 +29,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      # - name: Run hardhat
-      #   run: npx hardhat test
   
   test:
     name: Test contracts
