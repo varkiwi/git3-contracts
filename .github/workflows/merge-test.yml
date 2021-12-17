@@ -90,8 +90,8 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       
-      - name: Execute unit tests
+      - name: Execute coverage test
         run: |
           npx hardhat coverage > result
           cat result
-          if (( $(cat result | grep 'All files' | cut -d "|" -f 2) >= 90 )); then echo "Coverage is good"; else echo 'fail'; fi
+          if (( $(cat result | grep 'All files' | cut -d "|" -f 2 | cut -d "." -f 1) >= 90 )); then echo "Coverage is good"; else echo 'fail'; fi
