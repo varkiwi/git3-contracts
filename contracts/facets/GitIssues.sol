@@ -150,7 +150,7 @@ contract GitIssues {
                 LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
                 uint tips = i.issues[issueHash].bounty;
                 // factory get's 1%
-                (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 19000}('');
+                (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 20000}('');
                 require(success);
                 //resolver gets's 99%
                 payable(i.issues[issueHash].resolver).transfer(tips * 99 / 100);
@@ -164,7 +164,7 @@ contract GitIssues {
                 LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
                 uint tips = i.issues[issueHash].bounty;
                 // factory get's 1%
-                (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 19000}('');
+                (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 20000}('');
                 require(success);
                 //resolver gets's 99%
                 payable(i.issues[issueHash].resolver).transfer(tips * 99 / 100);
