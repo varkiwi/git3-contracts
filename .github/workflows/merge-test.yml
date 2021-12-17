@@ -68,7 +68,7 @@ jobs:
   coverage:
     name: Check test coverage of contracts
     runs-on: ubuntu-latest
-    needs: setup
+    needs: test
 
     steps:
       - uses: actions/checkout@v2
@@ -92,6 +92,6 @@ jobs:
       
       - name: Execute unit tests
         run: |
-          npx hardhat coverage
-          cat coverage/lcov.info | coveralls
-      
+          npx hardhat coverage > result
+          cat result
+          if [[ $(cat result | grep 'All files' | cut -d "|" -f 2) -gt 90 ]]; then echo "test"; else echo 0; fi
