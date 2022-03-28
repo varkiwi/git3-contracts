@@ -50,7 +50,11 @@ module.exports = {
       //TODO: If I want to use the hardhat network, the key for matic is still read.
       // What for? If the file does not exist, hardhat gives Error HH8. Why?
       // Could be avoided, since I am not using these network settings.
-    //   accounts: [readPrivateKey("maticTestnet.key")]
+      accounts: [readPrivateKey("maticTestnet.key")]
+    },
+    godwoken: {
+        url: "https://godwoken-testnet-web3-v1-rpc.ckbapp.dev/",
+        accounts: [readPrivateKey("godwoken.key")]
     }
   },
   settings: {

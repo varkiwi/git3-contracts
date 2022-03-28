@@ -10,17 +10,26 @@ In order to be able to use git3, a git3 client is created, which is similar to g
 
 
 ## Smart Contracts Address:
-The smart contracts are currently deployed on Polygons Mumbai Testnet. Here are the addresses:
+The smart contracts are currently deployed on Polygons Mumbai and Nervo's Godwoken Testnet.
+Here are the addresses for Polygon Mumbai:
 
-    * DiamondCutFacet's address is:        0x4815d445a56Df2b16053aA77764ec2ACC57C93d3
-    * DiamondLoupeFacet's address is:      0x74944C481A0a37bFBb921fCBe922B20FF4CbCc66
-    * Deployer's address is:               0x47462d1b9795562Fb20bd152EEa249c7a9F7Ce8C
-    * GitRepoManagementFacet's address is: 0x82dC9D13c05a75281D61Dd5f7d23Bb2b30A1E70B
-    * GitBranchFacet's address is:         0xB94C10D937C0a604f8A6dC15Af6807fcB00d2BDB
-    * GitIssuesFacet's address is:         0x01F3E4b3Dae110c9F80D2ae96d88ba9047E6de8C
-    * GitFactory's address:                0x5545fc8e2cc3815e351E37C6F2f372e2A878E364
+    * GitRepoManagementFacet's address is: 0x1865DE7Ed3D1B3d3603e417DA7bd0Ba42D483234
+    * GitBranchFacet's address is:         0xCE466a8c46747228448D1D4BC6e3939499c6a36F
+    * GitIssuesFacet's address is:         0x2a4c626D058D3FD9475E1637C8C62D1B46D0a0d5
+    * GitTipsFacet's address is:           0x3e40ACfAd00D27aF22bC9225A6c76eE56BD3C38e
+    * GitContractRegistry's address is:    0x1A5e394A7c68F147549e5dF4C8EaA9FbE9e7dA62
+    * GitFactory's address:                0x9Af5B605f4c9833692DF8cCcF021d62C6Cc4df8F
 
-In case you want to download the abis, here is the CID: `QmcFseuVDBMEU92hkjfBL4J1XKFhbxEtDCGiSQ3AUExXcw`
+Here are the addresses for Nervo's Godwoken:
+
+    * GitRepoManagementFacet's address is: 0x9639eB95Ae2Ba325027006fb2D81f667e3ebFE18
+    * GitBranchFacet's address is:         0x6c8A7363Cd2e814b779349E1B9c3e7cb6D9592da
+    * GitIssuesFacet's address is:         0x2F941A19d3c573d74BBbf5DC78363E15B1CE620a
+    * GitTipsFacet's address is:           0xad9d55b7223e4cD8BF1Ec6e9eA28b5BfADd81298
+    * GitContractRegistry's address is:    0x82867391d5C280A09B16d1d2C84ab83Fc0995BcB
+    * GitFactory's address:                0xc6289F7fa0dA125B2FFA932c9A655a99a5427073
+
+In case you want to download the abis, here is the CID: `QmYBw83oKD3YDSeC2MyVDS3a3E5zbej6Z9iDQd185zABsk`
 
 ## Compile contracts
 
@@ -34,8 +43,9 @@ npx hardhat run --network <your-network> scripts/deployGitContracts.js
 ```
 Currently supported networks:
 
-    * hardhat       : npx hardhat run --network hardhat scripts/deployGitContracts.js
-    * Mumbai Testnet: npx hardhat run --network maticTestnet scripts/deployGitContracts.js
+    * hardhat         : npx hardhat run --network hardhat scripts/deployGitContracts.js
+    * Mumbai Testnet  : npx hardhat run --network maticTestnet scripts/deployGitContracts.js
+    * Nervo's Godwoken: npx hardhat run --network godwoken scripts/deployGitContracts.js
 
 In order to deploy to a network, you need a private key. Create a secrets directory in the root of the project, create a file called `maticTestnet.key` and write the private key in. Without any quotes or whatsoever. Just plain hex string :)
 
