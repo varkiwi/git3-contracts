@@ -1,7 +1,5 @@
 {
     "files": [
-        "facets/DiamondCutFacet.sol",
-        "facets/DiamondLoupeFacet.sol",
         "facets/GitBranch.sol",
         "facets/GitIssues.sol",
         "facets/GitRepositoryManagement.sol",

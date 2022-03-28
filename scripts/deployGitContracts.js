@@ -1,12 +1,6 @@
 const hre = require("hardhat");
 const web3Abi = require("web3-eth-abi");
 
-const FacetCutAction = {
-  Add: 0,
-  Replace: 1,
-  Remove: 2
-}
-
 function getSelectors(contractFunctions) {
   selectors = [];
   for (func in contractFunctions) {
@@ -29,25 +23,16 @@ async function deployContract(contractName, args) {
 }
 
 async function main() {
-    const diamondCutFacet = await deployContract("DiamondCutFacet");
-    const diamondLoupeFacet = await deployContract("DiamondLoupeFacet");
     const gitRepoManagementFacet = await deployContract("GitRepositoryManagement");
-    const deployer = await deployContract("GitRepositoryDeployer");
     const gitBranchFacet = await deployContract("GitBranch");
     const gitIssuesFacet = await deployContract("GitIssues");
     const gitTipsFacet = await deployContract("GitTips");
 
-    await diamondCutFacet.deployed();
-    await diamondLoupeFacet.deployed();
-    await deployer.deployed();
     await gitRepoManagementFacet.deployed();
     await gitBranchFacet.deployed();
     await gitIssuesFacet.deployed();
     await gitTipsFacet.deployed();
 
-    console.log("DiamondCutFacet's address is:", diamondCutFacet.address);
-    console.log("DiamondLoupeFacet's address is:", diamondLoupeFacet.address);
-    console.log("Deployer's address is:", deployer.address);
     console.log("GitRepoManagementFacet's address is:", gitRepoManagementFacet.address);
     console.log("GitBranchFacet's address is:", gitBranchFacet.address);
     console.log("GitIssuesFacet's address is:", gitIssuesFacet.address);
@@ -55,16 +40,18 @@ async function main() {
     
 
     const diamondCut = [
-      [diamondCutFacet.address, FacetCutAction.Add, getSelectors(diamondCutFacet.functions)],
-      [diamondLoupeFacet.address, FacetCutAction.Add, getSelectors(diamondLoupeFacet.functions)],
-      [gitRepoManagementFacet.address, FacetCutAction.Add, getSelectors(gitRepoManagementFacet.functions)],
-      [gitBranchFacet.address, FacetCutAction.Add, getSelectors(gitBranchFacet.functions)],
-      [gitIssuesFacet.address, FacetCutAction.Add, getSelectors(gitIssuesFacet.functions)],
-      [gitTipsFacet.address, FacetCutAction.Add, getSelectors(gitTipsFacet.functions)]
+      [gitRepoManagementFacet.address, getSelectors(gitRepoManagementFacet.functions)],
+      [gitBranchFacet.address, getSelectors(gitBranchFacet.functions)],
+      [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions)],
+      [gitTipsFacet.address, getSelectors(gitTipsFacet.functions)]
     ];
 
+    const gitContractRegistry = await deployContract("GitContractRegistry", [diamondCut, ]);
+    await gitContractRegistry.deployed();
+    console.log("GitContractRegistry's address is:", gitContractRegistry.address);
 
-    const gitFactory = await deployContract("GitFactory", [diamondCut, deployer.address]);
+
+    const gitFactory = await deployContract("GitFactory", [gitContractRegistry.address]);
     await gitFactory.deployed();
     console.log("GitFactory's address:", gitFactory.address);
   }
