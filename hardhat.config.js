@@ -53,7 +53,7 @@ module.exports = {
       accounts: [readPrivateKey("maticTestnet.key")]
     },
     godwoken: {
-        url: "https://godwoken-testnet-web3-v1-rpc.ckbapp.dev/",
+        url: "https://godwoken-testnet-v1.ckbapp.dev",
         accounts: [readPrivateKey("godwoken.key")]
     }
   },
