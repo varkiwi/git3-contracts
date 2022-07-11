@@ -2,8 +2,10 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
+import "./interfaces/AbstractGitRepository.sol";
 import "./GitContractRegistry.sol";
 import "./GitRepository.sol";
+import "./GitForkedRepository.sol";
 import "./facets/GitRepositoryManagement.sol";
 import "./Ownable.sol";
 
@@ -13,7 +15,7 @@ contract GitFactory is Ownable {
     struct Repository {
         bool isActive;
         string name;
-        GitRepository location;
+        AbstractGitRepository location;
     }
 
     struct ActiveRepo {
@@ -88,6 +90,30 @@ contract GitFactory is Ownable {
         emit NewRepositoryCreated(_repoName, msg.sender);
     }
 
+    function forkRepository(bytes32 location) public {
+        Repository storage toBeForkedRepo = _repoData.repositoryList[location];
+        //The user provides the location of the repository to be forked.
+        // We are checking if it exists in the first place
+        require(toBeForkedRepo.isActive, 'No such repository exists');
+        
+        GitForkedRepository newGitRepo = new GitForkedRepository(
+            GitForkedRepository.RepositoryArgs({
+                owner: msg.sender,
+                factory: this,
+                name: toBeForkedRepo.name,
+                userIndex: _repoData.reposUserList[toBeForkedRepo.name].length,
+                repoIndex: _repoData.usersRepoList[msg.sender].length,
+                forked: true,
+                forkSource: address(toBeForkedRepo.location)
+            }
+        ));
+
+        //TODO: We will need to adjust the addRepository function, to accept for forked repositories
+        // I guess both contract have to inherit from an abstract class. 
+        // addRepository(location, toBeForkedRepo.name, newGitRepo);
+        emit NewRepositoryCreated(toBeForkedRepo.name, msg.sender);
+    }
+
     /**
      * This function is used to create a new repository. By providing a name, a new 
      * GitRepository smart contract is deployed.
@@ -99,7 +125,7 @@ contract GitFactory is Ownable {
     function addRepository(
         bytes32 key,
         string memory repoName,
-        GitRepository newGitRepo
+        AbstractGitRepository newGitRepo
     ) internal {
         _repoData.repositoryList[key] = Repository({
             isActive: true,

@@ -6,11 +6,12 @@ pragma experimental ABIEncoderV2;
 * Author: Jacek Varky <jaca347@protonmail.com> (https://twitter.com/git314)
 /******************************************************************************/
 
+import "./interfaces/AbstractGitRepository.sol";
 import "./GitFactory.sol";
 import "./GitContractRegistry.sol";
 import "./libraries/LibGitRepository.sol";
 
-contract GitRepository {
+contract GitRepository is AbstractGitRepository {
     // more arguments are added to this struct
     // this avoids stack too deep errors
     struct RepositoryArgs {
