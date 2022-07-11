@@ -43,9 +43,10 @@ contract GitContractRegistry is Ownable {
      * Takes a function signature and returns the contract address that is responsible for the function.
      *
      * @param _functionSelector {bytes4} - 4 byte signature used to identify the function to be executed
+     * @param _forked {bool} - indicating if a repository has been forked
      * @return {address} - the address of the contract that is responsible for the function
      */
-    function getContractAddress(bytes4 _functionSelector) public view returns (address) {
+    function getContractAddress(bytes4 _functionSelector, bool _forked) public view returns (address) {
         Index storage index = contractAddressIndex[_functionSelector];
         if(!index.isActive) {
             revert('No contract registered');

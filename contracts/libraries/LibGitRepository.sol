@@ -21,6 +21,8 @@ library LibGitRepository {
         // the position of the repositories name in the usersRepoList
         uint repoIndex;
         uint donations;
+        bool forked;
+        address forkOrigin;
     }
 
     function repositoryInformation() internal pure returns (RepositoryInformation storage ri) {
@@ -30,7 +32,15 @@ library LibGitRepository {
         }
     }
 
-    function setRepositoryInfo(GitFactory factory, string memory name, uint userIndex, uint repoIndex, address _newOwner) internal {
+    function setRepositoryInfo(
+        GitFactory factory,
+        string memory name,
+        uint userIndex,
+        uint repoIndex,
+        address _newOwner,
+        bool forked,
+        address forkOrigin
+    ) internal {
         RepositoryInformation storage ri = repositoryInformation();
         ri.factory = factory;
         ri.name = name;
@@ -40,6 +50,8 @@ library LibGitRepository {
         address previousOwner = ri.contractOwner;
         ri.contractOwner = _newOwner;
         ri.donations = 0;
+        ri.forked = forked;
+        ri.forkOrigin = forkOrigin;
         emit OwnershipTransferred(previousOwner, _newOwner);
     }
 }

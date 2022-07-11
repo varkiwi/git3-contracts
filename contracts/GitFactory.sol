@@ -2,10 +2,9 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "./interfaces/AbstractGitRepository.sol";
+
 import "./GitContractRegistry.sol";
 import "./GitRepository.sol";
-import "./GitForkedRepository.sol";
 import "./facets/GitRepositoryManagement.sol";
 import "./Ownable.sol";
 
@@ -15,7 +14,7 @@ contract GitFactory is Ownable {
     struct Repository {
         bool isActive;
         string name;
-        AbstractGitRepository location;
+        GitRepository location;
     }
 
     struct ActiveRepo {
@@ -82,7 +81,9 @@ contract GitFactory is Ownable {
                 factory: this,
                 name: _repoName,
                 userIndex: _repoData.reposUserList[_repoName].length,
-                repoIndex: _repoData.usersRepoList[msg.sender].length
+                repoIndex: _repoData.usersRepoList[msg.sender].length,
+                forked: false,
+                forkOrigin: address(0x0)
             }
         ));
 
@@ -90,27 +91,32 @@ contract GitFactory is Ownable {
         emit NewRepositoryCreated(_repoName, msg.sender);
     }
 
+    /**
+     * This functions is used to create a new forked reposiory. By providing a the location
+     * of a repository to be forked, a new GitForkedRepository smart contract is deployed.
+     *
+     * @param location (bytes32) - The location of the repository to be forked
+     */
     function forkRepository(bytes32 location) public {
         Repository storage toBeForkedRepo = _repoData.repositoryList[location];
         //The user provides the location of the repository to be forked.
         // We are checking if it exists in the first place
         require(toBeForkedRepo.isActive, 'No such repository exists');
         
-        GitForkedRepository newGitRepo = new GitForkedRepository(
-            GitForkedRepository.RepositoryArgs({
+        GitRepository newGitRepo = new GitRepository(
+            GitRepository.RepositoryArgs({
                 owner: msg.sender,
                 factory: this,
                 name: toBeForkedRepo.name,
                 userIndex: _repoData.reposUserList[toBeForkedRepo.name].length,
                 repoIndex: _repoData.usersRepoList[msg.sender].length,
                 forked: true,
-                forkSource: address(toBeForkedRepo.location)
+                forkOrigin: address(toBeForkedRepo.location)
             }
         ));
 
-        //TODO: We will need to adjust the addRepository function, to accept for forked repositories
         // I guess both contract have to inherit from an abstract class. 
-        // addRepository(location, toBeForkedRepo.name, newGitRepo);
+        addRepository(location, toBeForkedRepo.name, newGitRepo);
         emit NewRepositoryCreated(toBeForkedRepo.name, msg.sender);
     }
 
@@ -125,7 +131,7 @@ contract GitFactory is Ownable {
     function addRepository(
         bytes32 key,
         string memory repoName,
-        AbstractGitRepository newGitRepo
+        GitRepository newGitRepo
     ) internal {
         _repoData.repositoryList[key] = Repository({
             isActive: true,

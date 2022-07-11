@@ -39,7 +39,7 @@ describe("Testing GitContractRegistry", function() {
     it("Should return the address of the GitRepositoryManagement contract", async function() {
         const selectors = getSelectors(gitRepositoryManagementFacet.functions);
         for (selector of selectors) {
-            expect(await gitContractRegistry.getContractAddress(selector)).to.equal(gitRepositoryManagementFacet.address);
+            expect(await gitContractRegistry.getContractAddress(selector, false)).to.equal(gitRepositoryManagementFacet.address);
         }
     });
   });
@@ -60,12 +60,12 @@ describe("Testing GitContractRegistry", function() {
 
         const selectors = getSelectors(gitRepositoryManagementFacetUpdated.functions);
         for (selector of selectors) {
-            expect(await gitContractRegistry.getContractAddress(selector)).to.equal(gitRepositoryManagementFacetUpdated.address);
+            expect(await gitContractRegistry.getContractAddress(selector, false)).to.equal(gitRepositoryManagementFacetUpdated.address);
         }
       });
 
       it("Testing unavailable selector", async function() {
-        await expect(gitContractRegistry.getContractAddress("0x00000000")).to.be.revertedWith("No contract registered");
+        await expect(gitContractRegistry.getContractAddress("0x00000000", false)).to.be.revertedWith("No contract registered");
       });
 
       it("Removing selectors", async function() {
@@ -73,7 +73,7 @@ describe("Testing GitContractRegistry", function() {
             getSelectors(gitRepositoryManagementFacetUpdated.functions)
         );
         for (selector of selectors) {
-            await expect(gitContractRegistry.getContractAddress(selector)).to.be.revertedWith("No contract registered");
+            await expect(gitContractRegistry.getContractAddress(selector, false)).to.be.revertedWith("No contract registered");
         }
       });
   });

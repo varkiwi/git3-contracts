@@ -6,12 +6,11 @@ pragma experimental ABIEncoderV2;
 * Author: Jacek Varky <jaca347@protonmail.com> (https://twitter.com/git314)
 /******************************************************************************/
 
-import "./interfaces/AbstractGitRepository.sol";
 import "./GitFactory.sol";
 import "./GitContractRegistry.sol";
 import "./libraries/LibGitRepository.sol";
 
-contract GitRepository is AbstractGitRepository {
+contract GitRepository {
     // more arguments are added to this struct
     // this avoids stack too deep errors
     struct RepositoryArgs {
@@ -20,10 +19,20 @@ contract GitRepository is AbstractGitRepository {
         string name; 
         uint userIndex;
         uint repoIndex;
+        bool forked;
+        address forkOrigin;
     }
 
     constructor(RepositoryArgs memory _args) payable {
-        LibGitRepository.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex, _args.owner);
+        LibGitRepository.setRepositoryInfo(
+            _args.factory,
+            _args.name,
+            _args.userIndex,
+            _args.repoIndex, 
+            _args.owner,
+            _args.forked,
+            _args.forkOrigin
+        );
     }
 
     // Find facet for function that is called and execute the
@@ -32,7 +41,7 @@ contract GitRepository is AbstractGitRepository {
         LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
         GitFactory factory = ri.factory;
         GitContractRegistry registry = factory.gitContractRegistry();
-        address facet = registry.getContractAddress(msg.sig);
+        address facet = registry.getContractAddress(msg.sig, ri.forked);
 
         require(facet != address(0), "Diamond: Function does not exist");
         assembly {
