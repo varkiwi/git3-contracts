@@ -316,11 +316,11 @@ describe("Testing GitFactory", function() {
   describe("Testing forking of repository", function() {
 
     before(async function() {
-        await gitContractRegistry.addContractAddress(
+        await gitContractRegistry.addContractAddress([
             gitRepositoryManagementFacet.address,
             getSelectors(gitRepositoryManagementFacet.functions, false),
             true
-        )
+        ])
     });
 
     it("Forking repository as owner fails", async function() {

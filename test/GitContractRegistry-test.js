@@ -46,19 +46,19 @@ describe("Testing GitContractRegistry", function() {
 
   describe("Testing adding/updating address in registry", function() {
       it("Trying to add selectors with non-owner account", async function() {
-        await expect(gitContractRegistry.connect(ACCOUNTS[1]).functions.addContractAddress(
+        await expect(gitContractRegistry.connect(ACCOUNTS[1]).functions.addContractAddress([
             gitRepositoryManagementFacetUpdated.address,
             getSelectors(gitRepositoryManagementFacetUpdated.functions),
             true
-        )).to.be.revertedWith("Ownable: caller is not the owner");
+        ])).to.be.revertedWith("Ownable: caller is not the owner");
       });
 
       it("Trying to add selectors with owner account", async function() {
-        await gitContractRegistry.functions.addContractAddress(
+        await gitContractRegistry.functions.addContractAddress([
             gitRepositoryManagementFacetUpdated.address,
             getSelectors(gitRepositoryManagementFacetUpdated.functions),
             true
-        );
+        ]);
 
         const selectors = getSelectors(gitRepositoryManagementFacetUpdated.functions);
         for (selector of selectors) {

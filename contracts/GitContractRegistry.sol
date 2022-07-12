@@ -68,19 +68,17 @@ contract GitContractRegistry is Ownable {
     /**
      * Registers a new contract address for a set function signatures.
      *
-     * @param _contractAddress {address} - the address of the contract that is responsible for the function
-     * @param _functionSelectors {bytes4[]} - the function signatures that are handled by the contract
+     * @param _diamondCut {FacetCut} - the set of function signatures and contract address that are to be registered
+     *
      */
-    function addContractAddress(address _contractAddress, bytes4[] calldata _functionSelectors, bool _callableByFork) public onlyOwner {
-        // TODO: We need to parametrize this part!
-        // TODO: And maybe we can change the parameter to FacetCut instead separating everything
+    function addContractAddress(FacetCut memory _diamondCut) public onlyOwner {
         contractAddress[freeIndex] = Contract({
             isActive: true,
-            contractAddress: _contractAddress,
-            callableByFork: _callableByFork
+            contractAddress: _diamondCut.facetAddress,
+            callableByFork: _diamondCut.callableByFork
         });
-        for(uint i = 0; i < _functionSelectors.length; i++){
-            contractAddressIndex[_functionSelectors[i]] = Index({isActive: true, index: freeIndex});
+        for(uint i = 0; i < _diamondCut.functionSelectors.length; i++){
+            contractAddressIndex[_diamondCut.functionSelectors[i]] = Index({isActive: true, index: freeIndex});
         }
         freeIndex += 1;
     }
