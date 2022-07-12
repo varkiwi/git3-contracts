@@ -102,6 +102,10 @@ contract GitFactory is Ownable {
         //The user provides the location of the repository to be forked.
         // We are checking if it exists in the first place
         require(toBeForkedRepo.isActive, 'No such repository exists');
+        GitRepositoryManagement gitRepo = GitRepositoryManagement(address(_repoData.repositoryList[location].location));
+        address owner;
+        (owner, , , , , , ,) = gitRepo.getRepositoryInfo();
+        require(owner != msg.sender, "Forking not possible. Repository exists already");
         
         GitRepository newGitRepo = new GitRepository(
             GitRepository.RepositoryArgs({
@@ -115,8 +119,9 @@ contract GitFactory is Ownable {
             }
         ));
 
+        bytes32 newLocation = getUserRepoNameHash(msg.sender, toBeForkedRepo.name);
         // I guess both contract have to inherit from an abstract class. 
-        addRepository(location, toBeForkedRepo.name, newGitRepo);
+        addRepository(newLocation, toBeForkedRepo.name, newGitRepo);
         emit NewRepositoryCreated(toBeForkedRepo.name, msg.sender);
     }
 
@@ -172,7 +177,7 @@ contract GitFactory is Ownable {
         GitRepositoryManagement repoToDelete = GitRepositoryManagement(address(_repoData.repositoryList[key].location));
         uint _userIndex; 
         uint _repoIndex;
-        (, , , _userIndex, _repoIndex,) = repoToDelete.getRepositoryInfo();
+        (, , , _userIndex, _repoIndex, , ,) = repoToDelete.getRepositoryInfo();
         require(userIndex == _userIndex, "User Index value is not correct");
         require(repoIndex == _repoIndex, "Repo Index value is not correct");
 

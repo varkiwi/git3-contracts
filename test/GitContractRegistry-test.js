@@ -24,7 +24,7 @@ describe("Testing GitContractRegistry", function() {
     await gitRepositoryManagementFacetUpdated.deployed();
 
     diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)]
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true]
       ];
     
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
@@ -48,14 +48,16 @@ describe("Testing GitContractRegistry", function() {
       it("Trying to add selectors with non-owner account", async function() {
         await expect(gitContractRegistry.connect(ACCOUNTS[1]).functions.addContractAddress(
             gitRepositoryManagementFacetUpdated.address,
-            getSelectors(gitRepositoryManagementFacetUpdated.functions)
+            getSelectors(gitRepositoryManagementFacetUpdated.functions),
+            true
         )).to.be.revertedWith("Ownable: caller is not the owner");
       });
 
       it("Trying to add selectors with owner account", async function() {
         await gitContractRegistry.functions.addContractAddress(
             gitRepositoryManagementFacetUpdated.address,
-            getSelectors(gitRepositoryManagementFacetUpdated.functions)
+            getSelectors(gitRepositoryManagementFacetUpdated.functions),
+            true
         );
 
         const selectors = getSelectors(gitRepositoryManagementFacetUpdated.functions);

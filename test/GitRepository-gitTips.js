@@ -24,8 +24,8 @@ describe("Testing Git Tips", function() {
     await gitTipsFacet.deployed();
 
     diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
-        [gitTipsFacet.address, getSelectors(gitTipsFacet.functions)]
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true],
+        [gitTipsFacet.address, getSelectors(gitTipsFacet.functions), false]
       ];
 
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);

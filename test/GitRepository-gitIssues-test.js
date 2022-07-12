@@ -37,8 +37,8 @@ describe("Testing Git Issues of Git Repository", function() {
     await gitIssuesFacet.deployed();
 
     diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
-        [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions)]
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true],
+        [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions), false]
     ];
 
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);

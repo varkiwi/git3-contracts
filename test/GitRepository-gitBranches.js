@@ -25,8 +25,8 @@ describe("Testing Git Branch of Git Repository", function() {
     await gitBranchFacet.deployed();
 
     diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
-        [gitBranchFacet.address, getSelectors(gitBranchFacet.functions)]
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true],
+        [gitBranchFacet.address, getSelectors(gitBranchFacet.functions), true]
       ];
 
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);

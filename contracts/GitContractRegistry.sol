@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "./Ownable.sol";
 
+import "hardhat/console.sol";
+
 contract GitContractRegistry is Ownable {
     struct Index {
         bool isActive;
@@ -13,12 +15,14 @@ contract GitContractRegistry is Ownable {
     struct Contract {
         bool isActive;
         address contractAddress;
+        bool callableByFork;
     }
 
     // terminology taken from EIP-2535
     struct FacetCut {
         address facetAddress;
         bytes4[] functionSelectors;
+        bool callableByFork;
     }
 
     uint256 freeIndex;
@@ -31,7 +35,11 @@ contract GitContractRegistry is Ownable {
     constructor(FacetCut[] memory _diamondCut) {
         freeIndex = 0;
         for(uint i = 0; i < _diamondCut.length; i++){
-            contractAddress[freeIndex] = Contract({isActive: true, contractAddress: _diamondCut[i].facetAddress});
+            contractAddress[freeIndex] = Contract({
+                isActive: true,
+                contractAddress: _diamondCut[i].facetAddress,
+                callableByFork: _diamondCut[i].callableByFork
+            });
             for(uint j = 0; j < _diamondCut[i].functionSelectors.length; j++){
                 contractAddressIndex[_diamondCut[i].functionSelectors[j]] = Index({isActive: true, index: freeIndex});
             }
@@ -51,6 +59,9 @@ contract GitContractRegistry is Ownable {
         if(!index.isActive) {
             revert('No contract registered');
         }
+        if (_forked && !contractAddress[index.index].callableByFork) {
+            revert('Forked repository does not support this function');
+        }
         return contractAddress[index.index].contractAddress;
     }
 
@@ -60,8 +71,14 @@ contract GitContractRegistry is Ownable {
      * @param _contractAddress {address} - the address of the contract that is responsible for the function
      * @param _functionSelectors {bytes4[]} - the function signatures that are handled by the contract
      */
-    function addContractAddress(address _contractAddress, bytes4[] calldata _functionSelectors) public onlyOwner {
-        contractAddress[freeIndex] = Contract({isActive: true, contractAddress: _contractAddress});
+    function addContractAddress(address _contractAddress, bytes4[] calldata _functionSelectors, bool _callableByFork) public onlyOwner {
+        // TODO: We need to parametrize this part!
+        // TODO: And maybe we can change the parameter to FacetCut instead separating everything
+        contractAddress[freeIndex] = Contract({
+            isActive: true,
+            contractAddress: _contractAddress,
+            callableByFork: _callableByFork
+        });
         for(uint i = 0; i < _functionSelectors.length; i++){
             contractAddressIndex[_functionSelectors[i]] = Index({isActive: true, index: freeIndex});
         }
