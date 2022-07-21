@@ -22,7 +22,7 @@ describe("Testing Git Issues of Git Repository", function() {
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, gitRepositoryManagementFacet, gitRepositoryLocation, diamondCut, gitIssues;
+  let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitRepositoryLocation, diamondCut, gitIssuesFactory, gitIssues;
 
   before(async function(){
     ACCOUNTS = waffle.provider.getWallets();
@@ -32,13 +32,16 @@ describe("Testing Git Issues of Git Repository", function() {
 
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     gitIssuesFacet = await deployContract("GitIssues");
+    gitBranchFacet = await deployContract("GitBranch");
 
     await gitRepositoryManagementFacet.deployed();
     await gitIssuesFacet.deployed();
+    await gitBranchFacet.deployed();
 
     diamondCut = [
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true],
-        [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions), false]
+        [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions), false],
+        [gitBranchFacet.address, getSelectors(gitBranchFacet.functions), true]
     ];
 
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
@@ -50,7 +53,7 @@ describe("Testing Git Issues of Git Repository", function() {
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
     gitRepositoryLocation = await gitFactory.getRepository(userRepoNameHash);
 
-    const gitIssuesFactory = await hre.ethers.getContractFactory("GitIssues");
+    gitIssuesFactory = await hre.ethers.getContractFactory("GitIssues");
     gitIssues = await gitIssuesFactory.attach(gitRepositoryLocation.location);
   });
 
@@ -392,6 +395,27 @@ describe("Testing Git Issues of Git Repository", function() {
             expect(issue.resolver).to.be.equal(REPO_OWNER_ACCOUNT.address);
         });
       });
+    });
+  });
+
+  describe("Testing GitIssues of forked GitRepository", function() {
+    describe("Testing to use GitIssues facet from a forked repository", function() {
+        let forkedIssuesRepo;
+
+        before(async function() {
+            const repoName = 'repo_to_be_forked';
+            await gitFactory.createRepository(repoName);
+            const repositoryLocation = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+
+            await gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation);
+            const forkedRepositoryLocation = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
+            let forkedRepoLocation = await gitFactory.getRepository(forkedRepositoryLocation);
+            forkedIssuesRepo = await gitIssuesFactory.attach(forkedRepoLocation.location);
+        });
+
+        it("Calling a GitIssue function results in a revert", async function() {
+            await expect(forkedIssuesRepo.openIssue(issueCid)).to.be.revertedWith("Forked repository does not support this function");;
+        });
     });
   });
 });
