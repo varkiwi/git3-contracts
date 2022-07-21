@@ -3,7 +3,6 @@ require("solidity-coverage");
 const fs = require('fs');
 const { uploadABIToPinata } = require("pin-abi");
 const { task } = require("hardhat/config");
-const { exit } = require("process");
 
 // const { uploadABIToPinata } = require("./tasks/uploadABIToPinata");
 
