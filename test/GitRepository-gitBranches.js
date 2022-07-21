@@ -140,5 +140,26 @@ describe("Testing Git Branch of Git Repository", function() {
 
         });
     });
+
+    describe("Test calling readRemoteBranchNamesIntoStorage", function() {
+        let forkedRepo;
+
+        before(async function() {
+            const repoName = 'repo_to_be_forked_2';
+            await gitFactory.createRepository(repoName);
+            const repositoryLocation = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+            
+            let repoLocation = await gitFactory.getRepository(repositoryLocation);
+            repoToBeForked = await gitBranchFactory.attach(repoLocation.location);
+
+            await gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation);
+            const forkedRepositoryLocation = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
+            let forkedRepoLocation = await gitFactory.getRepository(forkedRepositoryLocation);
+            forkedRepo = await gitBranchFactory.attach(forkedRepoLocation.location);
+        });
+        it("Try to call readRemoteBranchNamesIntoStorage from non factory", async function() {
+            await expect(forkedRepo.readRemoteBranchNamesIntoStorage()).to.be.revertedWith("Only GitFactory can call this function");
+        });
+    });
   });
 });

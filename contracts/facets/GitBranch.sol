@@ -28,6 +28,11 @@ contract GitBranch {
     
     bytes32 constant GIT_BRANCHES_STORAGE_POSITION = keccak256("diamond.standard.git.branch");
     
+    modifier onlyGitFactory() {
+        require(msg.sender == address(LibGitRepository.repositoryInformation().factory), "Only GitFactory can call this function");
+        _;
+    }
+
     // Returns the struct from a specified position in contract storage
     // ds is short for DiamondStorage
     function gitBranches() internal pure returns(GitBranchStorage storage branches) {
@@ -119,8 +124,7 @@ contract GitBranch {
      * In case this is a forked repository, it is going to read the branch names from the fork origin.
      * This method should only be used once, when the repository is forked.
      */
-     // TODO: modidifer onlyFanctory
-    function readRemoteBranchNamesIntoStorage() public {
+    function readRemoteBranchNamesIntoStorage() public onlyGitFactory {
         LibGitRepository.RepositoryInformation storage repoInfo = gitRepositoryInformation();
         // we only execute the code if the repository is forked. If it is not forked, we don't have to get the 
         // remote branch names.
