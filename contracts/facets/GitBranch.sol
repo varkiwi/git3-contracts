@@ -70,21 +70,6 @@ contract GitBranch {
                 headCid: newCid
             });
             gitBranchStorage.branchNames.push(branch);
-            // if (gri.forked) {
-            //     // the repository is forked
-            //     GitBranch forkOrigin = GitBranch(gri.forkOrigin);
-            //     Branch memory remoteBranch = forkOrigin.getBranch(branch);
-            //     // so we are checking if the remote branch is active
-            //     if (!remoteBranch.isActive) {
-            //         // if the remote branch is not active, which means that it does not exist, we push the name
-            //         // locally. Why are we doing that? The getBranches function becomes easier -> I don't have
-            //         // to filter dupliacte names.
-            //         gitBranchStorage.branchNames.push(branch);    
-            //     }
-            // } else {
-            //     // this repository is not forked, so we push the name of the branch
-            //     gitBranchStorage.branchNames.push(branch);
-            // }
         }
 
         if (gri.forked) {
@@ -134,6 +119,7 @@ contract GitBranch {
      * In case this is a forked repository, it is going to read the branch names from the fork origin.
      * This method should only be used once, when the repository is forked.
      */
+     // TODO: modidifer onlyFanctory
     function readRemoteBranchNamesIntoStorage() public {
         LibGitRepository.RepositoryInformation storage repoInfo = gitRepositoryInformation();
         // we only execute the code if the repository is forked. If it is not forked, we don't have to get the 

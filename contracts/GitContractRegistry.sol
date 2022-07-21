@@ -94,5 +94,4 @@ contract GitContractRegistry is Ownable {
         }
         contractAddress[contractAddressIndex[_functionSelectors[0]].index].isActive = false;
     }
-
 }
