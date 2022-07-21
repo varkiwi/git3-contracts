@@ -14,11 +14,16 @@ contract GitBranch {
         // string array containing branch names
         string[] branchNames;
         GitFactory factory;
+        mapping(string => BranchStatus) branchStatus;
     }
 
     struct Branch {
         bool isActive;
         string headCid;
+    }
+
+    struct BranchStatus {
+        bool forked_branch_update;
     }
     
     bytes32 constant GIT_BRANCHES_STORAGE_POSITION = keccak256("diamond.standard.git.branch");
@@ -65,7 +70,28 @@ contract GitBranch {
                 headCid: newCid
             });
             gitBranchStorage.branchNames.push(branch);
+            // if (gri.forked) {
+            //     // the repository is forked
+            //     GitBranch forkOrigin = GitBranch(gri.forkOrigin);
+            //     Branch memory remoteBranch = forkOrigin.getBranch(branch);
+            //     // so we are checking if the remote branch is active
+            //     if (!remoteBranch.isActive) {
+            //         // if the remote branch is not active, which means that it does not exist, we push the name
+            //         // locally. Why are we doing that? The getBranches function becomes easier -> I don't have
+            //         // to filter dupliacte names.
+            //         gitBranchStorage.branchNames.push(branch);    
+            //     }
+            // } else {
+            //     // this repository is not forked, so we push the name of the branch
+            //     gitBranchStorage.branchNames.push(branch);
+            // }
         }
+
+        if (gri.forked) {
+            // if the repository has been forked, we need to update the forked_branch_update flag
+            gitBranchStorage.branchStatus[branch].forked_branch_update = true;
+        }
+
         emit NewPush(branch, newCid);
     }
 
@@ -77,8 +103,20 @@ contract GitBranch {
      * @return Branch - Returns the Branch struct saved under the branchName parameter
      */
     function getBranch(string calldata branchName) view public returns (Branch memory) {
+        LibGitRepository.RepositoryInformation storage repoInfo = gitRepositoryInformation();
         GitBranchStorage storage gitBranchStorage = gitBranches();
+        if (repoInfo.forked) {
+            // if the repo is forked, we have to check if the branch has been updated. If so, we would return 
+            // the branch data from the local storage.
+            // In case the branch was not updated, we need to get the data from the fork origin.   
+            if (gitBranchStorage.branchStatus[branchName].forked_branch_update) {
+                return gitBranchStorage.branches[branchName];
+            }
+            GitBranch forkOrigin = GitBranch(repoInfo.forkOrigin);
+            return forkOrigin.getBranch(branchName);
+        }
         return gitBranchStorage.branches[branchName];
+        
     }
 
     /**
@@ -90,5 +128,26 @@ contract GitBranch {
     function getBranchNames() view public returns (string[] memory) {
         GitBranchStorage storage gitBranchStorage = gitBranches();
         return gitBranchStorage.branchNames;
+    }
+
+    /**
+     * In case this is a forked repository, it is going to read the branch names from the fork origin.
+     * This method should only be used once, when the repository is forked.
+     */
+    function readRemoteBranchNamesIntoStorage() public {
+        LibGitRepository.RepositoryInformation storage repoInfo = gitRepositoryInformation();
+        // we only execute the code if the repository is forked. If it is not forked, we don't have to get the 
+        // remote branch names.
+        if (repoInfo.forked && !repoInfo.readOriginBranches) {
+            GitBranch forkOrigin = GitBranch(repoInfo.forkOrigin);
+
+            GitBranchStorage storage gitBranchStorage = gitBranches();
+            string[] memory remoteBranchNames = forkOrigin.getBranchNames();
+
+            for (uint256 i = 0; i < remoteBranchNames.length; i++) {
+                gitBranchStorage.branchNames.push(remoteBranchNames[i]);
+            }
+            repoInfo.readOriginBranches = true;
+        }
     }
 }

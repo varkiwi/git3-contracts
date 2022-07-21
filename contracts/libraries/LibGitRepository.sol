@@ -23,6 +23,9 @@ library LibGitRepository {
         uint donations;
         bool forked;
         address forkOrigin;
+        // flag used by forked repositories to indicate if the forked repository read all remote branch names
+        // into its local storage
+        bool readOriginBranches;
     }
 
     function repositoryInformation() internal pure returns (RepositoryInformation storage ri) {
@@ -49,9 +52,9 @@ library LibGitRepository {
 
         address previousOwner = ri.contractOwner;
         ri.contractOwner = _newOwner;
-        ri.donations = 0;
         ri.forked = forked;
         ri.forkOrigin = forkOrigin;
+        ri.readOriginBranches = forked ? false : true;
         emit OwnershipTransferred(previousOwner, _newOwner);
     }
 }

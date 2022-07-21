@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import "./GitContractRegistry.sol";
 import "./GitRepository.sol";
 import "./facets/GitRepositoryManagement.sol";
+import "./facets/GitBranch.sol";
 import "./Ownable.sol";
 
 contract GitFactory is Ownable {
@@ -117,7 +118,10 @@ contract GitFactory is Ownable {
                 forked: true,
                 forkOrigin: address(toBeForkedRepo.location)
             }
-        ));
+        ));        
+
+        GitBranch newGitRepoBranch = GitBranch(address(newGitRepo));
+        newGitRepoBranch.readRemoteBranchNamesIntoStorage();
 
         bytes32 newLocation = getUserRepoNameHash(msg.sender, toBeForkedRepo.name);
         // I guess both contract have to inherit from an abstract class. 
