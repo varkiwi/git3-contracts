@@ -62,7 +62,7 @@ describe("Testing GitFactory", function() {
     });
   
     it("Deploy the same GitRepository again, which should fail", async function(){
-      await expect(gitFactory.createRepository(repoName)).to.be.revertedWith("Repository exists already");
+      await expect(gitFactory.createRepository(repoName)).to.be.revertedWith("Repository exists");
 
       let repositories = await gitFactory.getRepositoryNames();
       let users = await gitFactory.getRepositoriesUserList(repoName);
@@ -163,7 +163,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber() + 1,
           repoInfo.repoIndex.toNumber()
         ))
-      .to.be.revertedWith("User Index value is not correct");
+      .to.be.revertedWith("User Index value is incorrect");
     });
 
     it("Trying to delete a repository using a owner address but wrong repo index parameter", async function() {
@@ -174,7 +174,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber(),
           repoInfo.repoIndex.toNumber() + 1
         ))
-      .to.be.revertedWith("Repo Index value is not correct");
+      .to.be.revertedWith("Repo Index value is incorrect");
     });
 
     it("Trying to delete a repository using a owner address but wrong user and repo index parameter", async function() {
@@ -185,7 +185,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber() + 1,
           repoInfo.repoIndex.toNumber() + 1
         ))
-      .to.be.revertedWith("User Index value is not correct");
+      .to.be.revertedWith("User Index value is incorrect");
     });
 
     it("Deleting a repository", async function() {
@@ -337,7 +337,7 @@ describe("Testing GitFactory", function() {
         let repositories = await gitFactory.getRepositoryNames();
         let users = await gitFactory.getRepositoriesUserList(repositories[0]);
         const repositoryLocation = await gitFactory.getUserRepoNameHash(users[0], repositories[0]);
-        await expect(gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation)).to.be.revertedWith("Forking not possible. Repository exists already");
+        await expect(gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation)).to.be.revertedWith("Forking impossible. Repository exists already");
     });
 
     it("Forking repository successful", async function() {

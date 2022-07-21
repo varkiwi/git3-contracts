@@ -75,7 +75,7 @@ contract GitFactory is Ownable {
         bytes32 key = getUserRepoNameHash(msg.sender, _repoName);
 
         // check if the key has already an active repository
-        require(!_repoData.repositoryList[key].isActive, 'Repository exists already');
+        require(!_repoData.repositoryList[key].isActive, 'Repository exists');
         GitRepository newGitRepo = new GitRepository(
             GitRepository.RepositoryArgs({
                 owner: msg.sender,
@@ -102,11 +102,11 @@ contract GitFactory is Ownable {
         Repository storage toBeForkedRepo = _repoData.repositoryList[location];
         //The user provides the location of the repository to be forked.
         // We are checking if it exists in the first place
-        require(toBeForkedRepo.isActive, 'No such repository exists');
+        require(toBeForkedRepo.isActive, 'No such repository');
         GitRepositoryManagement gitRepo = GitRepositoryManagement(address(_repoData.repositoryList[location].location));
         address owner;
         (owner, , , , , , ,) = gitRepo.getRepositoryInfo();
-        require(owner != msg.sender, "Forking not possible. Repository exists already");
+        require(owner != msg.sender, "Forking impossible. Repository exists already");
         
         GitRepository newGitRepo = new GitRepository(
             GitRepository.RepositoryArgs({
@@ -182,8 +182,8 @@ contract GitFactory is Ownable {
         uint _userIndex; 
         uint _repoIndex;
         (, , , _userIndex, _repoIndex, , ,) = repoToDelete.getRepositoryInfo();
-        require(userIndex == _userIndex, "User Index value is not correct");
-        require(repoIndex == _repoIndex, "Repo Index value is not correct");
+        require(userIndex == _userIndex, "User Index value is incorrect");
+        require(repoIndex == _repoIndex, "Repo Index value is incorrect");
 
         uint256 reposUserListLenght = _repoData.reposUserList[repoName].length;
         if ((userIndex + 1) == reposUserListLenght) {
