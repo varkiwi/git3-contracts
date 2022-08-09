@@ -4,8 +4,6 @@ pragma experimental ABIEncoderV2;
 
 import "./Ownable.sol";
 
-import "hardhat/console.sol";
-
 contract GitContractRegistry is Ownable {
     struct Index {
         bool isActive;
