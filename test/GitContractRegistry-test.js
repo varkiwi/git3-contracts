@@ -24,7 +24,7 @@ describe("Testing GitContractRegistry", function() {
     await gitRepositoryManagementFacetUpdated.deployed();
 
     diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)]
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true]
       ];
     
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
@@ -39,33 +39,35 @@ describe("Testing GitContractRegistry", function() {
     it("Should return the address of the GitRepositoryManagement contract", async function() {
         const selectors = getSelectors(gitRepositoryManagementFacet.functions);
         for (selector of selectors) {
-            expect(await gitContractRegistry.getContractAddress(selector)).to.equal(gitRepositoryManagementFacet.address);
+            expect(await gitContractRegistry.getContractAddress(selector, false)).to.equal(gitRepositoryManagementFacet.address);
         }
     });
   });
 
   describe("Testing adding/updating address in registry", function() {
       it("Trying to add selectors with non-owner account", async function() {
-        await expect(gitContractRegistry.connect(ACCOUNTS[1]).functions.addContractAddress(
+        await expect(gitContractRegistry.connect(ACCOUNTS[1]).functions.addContractAddress([
             gitRepositoryManagementFacetUpdated.address,
-            getSelectors(gitRepositoryManagementFacetUpdated.functions)
-        )).to.be.revertedWith("Ownable: caller is not the owner");
+            getSelectors(gitRepositoryManagementFacetUpdated.functions),
+            true
+        ])).to.be.revertedWith("Ownable: caller is not the owner");
       });
 
       it("Trying to add selectors with owner account", async function() {
-        await gitContractRegistry.functions.addContractAddress(
+        await gitContractRegistry.functions.addContractAddress([
             gitRepositoryManagementFacetUpdated.address,
-            getSelectors(gitRepositoryManagementFacetUpdated.functions)
-        );
+            getSelectors(gitRepositoryManagementFacetUpdated.functions),
+            true
+        ]);
 
         const selectors = getSelectors(gitRepositoryManagementFacetUpdated.functions);
         for (selector of selectors) {
-            expect(await gitContractRegistry.getContractAddress(selector)).to.equal(gitRepositoryManagementFacetUpdated.address);
+            expect(await gitContractRegistry.getContractAddress(selector, false)).to.equal(gitRepositoryManagementFacetUpdated.address);
         }
       });
 
       it("Testing unavailable selector", async function() {
-        await expect(gitContractRegistry.getContractAddress("0x00000000")).to.be.revertedWith("No contract registered");
+        await expect(gitContractRegistry.getContractAddress("0x00000000", false)).to.be.revertedWith("No contract registered");
       });
 
       it("Removing selectors", async function() {
@@ -73,7 +75,7 @@ describe("Testing GitContractRegistry", function() {
             getSelectors(gitRepositoryManagementFacetUpdated.functions)
         );
         for (selector of selectors) {
-            await expect(gitContractRegistry.getContractAddress(selector)).to.be.revertedWith("No contract registered");
+            await expect(gitContractRegistry.getContractAddress(selector, false)).to.be.revertedWith("No contract registered");
         }
       });
   });

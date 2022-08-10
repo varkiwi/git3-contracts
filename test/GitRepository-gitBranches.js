@@ -8,11 +8,9 @@ const { getSelectors } = require("./utils/getSelectors");
 describe("Testing Git Branch of Git Repository", function() {
   const repoName = "TestRepo";
 
-//   const provider = waffle.provider;
-
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, gitRepositoryManagementFacet, gitRepositoryLocation, diamondCut, gitBranch;
+  let gitFactory, gitRepositoryManagementFacet, gitRepositoryLocation, diamondCut, gitBranch, gitBranchFactory;
 
   before(async function(){
     ACCOUNTS = await ethers.getSigners()
@@ -25,8 +23,8 @@ describe("Testing Git Branch of Git Repository", function() {
     await gitBranchFacet.deployed();
 
     diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
-        [gitBranchFacet.address, getSelectors(gitBranchFacet.functions)]
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true],
+        [gitBranchFacet.address, getSelectors(gitBranchFacet.functions), true]
       ];
 
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
@@ -38,7 +36,7 @@ describe("Testing Git Branch of Git Repository", function() {
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
     gitRepositoryLocation = await gitFactory.getRepository(userRepoNameHash);
 
-    const gitBranchFactory = await hre.ethers.getContractFactory("GitBranch");
+    gitBranchFactory = await hre.ethers.getContractFactory("GitBranch");
     gitBranch = await gitBranchFactory.attach(gitRepositoryLocation.location);
   });
 
@@ -86,6 +84,82 @@ describe("Testing Git Branch of Git Repository", function() {
         expect(masterBranch.isActive).to.be.true;
         expect(masterBranch.headCid).to.be.equal('Test1234');
       });
+    });
+  });
+
+  describe("Testing GitBranch in a forked repository", function() {
+    describe("Test getBranch function", function() {
+        let repoToBeForked;
+        let forkedRepo;
+        let branchNames = [
+            {name: 'master', cid: 'test123'},
+            {name: 'lollipop', cid: 'test1234'}
+        ];
+        before(async function() {
+            const repoName = 'repo_to_be_forked';
+            await gitFactory.createRepository(repoName);
+            const repositoryLocation = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+            
+            let repoLocation = await gitFactory.getRepository(repositoryLocation);
+            repoToBeForked = await gitBranchFactory.attach(repoLocation.location);
+
+            await repoToBeForked.push(branchNames[0].name, branchNames[0].cid);
+            await repoToBeForked.push(branchNames[1].name, branchNames[1].cid);
+
+            await gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation);
+            const forkedRepositoryLocation = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
+            let forkedRepoLocation = await gitFactory.getRepository(forkedRepositoryLocation);
+            forkedRepo = await gitBranchFactory.attach(forkedRepoLocation.location);
+        });
+
+        it("Getting branches without pushed new cid for existing branches", async function() {
+            let masterBranch = await forkedRepo.getBranch(branchNames[0].name);
+            expect(masterBranch.isActive).to.be.true;
+            expect(masterBranch.headCid).to.be.equal(branchNames[0].cid);
+
+            let lollipopBranch = await forkedRepo.getBranch(branchNames[1].name);
+            expect(lollipopBranch.isActive).to.be.true;
+            expect(lollipopBranch.headCid).to.be.equal(branchNames[1].cid);
+        });
+
+        it("Pushing new cid to existing branch and get the data", async function() {
+            let newHeadCidForMaster = 'test12345';
+            await forkedRepo.connect(ACCOUNTS[1]).push(branchNames[0].name, newHeadCidForMaster);
+
+            let masterBranch = await forkedRepo.getBranch(branchNames[0].name);
+            expect(masterBranch.isActive).to.be.true;
+            expect(masterBranch.headCid).to.be.equal(newHeadCidForMaster);
+
+            let lollipopBranch = await forkedRepo.getBranch(branchNames[1].name);
+            expect(lollipopBranch.isActive).to.be.true;
+            expect(lollipopBranch.headCid).to.be.equal(branchNames[1].cid);
+
+            let originMasterBranch = await repoToBeForked.getBranch(branchNames[0].name);
+            expect(originMasterBranch.isActive).to.be.true;
+            expect(originMasterBranch.headCid).to.be.equal(branchNames[0].cid);
+
+        });
+    });
+
+    describe("Test calling readRemoteBranchNamesIntoStorage", function() {
+        let forkedRepo;
+
+        before(async function() {
+            const repoName = 'repo_to_be_forked_2';
+            await gitFactory.createRepository(repoName);
+            const repositoryLocation = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+            
+            let repoLocation = await gitFactory.getRepository(repositoryLocation);
+            repoToBeForked = await gitBranchFactory.attach(repoLocation.location);
+
+            await gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation);
+            const forkedRepositoryLocation = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
+            let forkedRepoLocation = await gitFactory.getRepository(forkedRepositoryLocation);
+            forkedRepo = await gitBranchFactory.attach(forkedRepoLocation.location);
+        });
+        it("Try to call readRemoteBranchNamesIntoStorage from non factory", async function() {
+            await expect(forkedRepo.readRemoteBranchNamesIntoStorage()).to.be.revertedWith("Only GitFactory can call this function");
+        });
     });
   });
 });

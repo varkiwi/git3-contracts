@@ -18,9 +18,27 @@ contract GitRepositoryManagement {
     }
 
 
-    function getRepositoryInfo() public view returns (address contractOwner, GitFactory factory, string memory name, uint userIndex, uint repoIndex, uint donations) {
+    function getRepositoryInfo() public view returns (
+        address contractOwner,
+        GitFactory factory,
+        string memory name,
+        uint userIndex,
+        uint repoIndex,
+        uint donations,
+        bool forked,
+        address forkOrigin
+    ) {
         LibGitRepository.RepositoryInformation storage ri = repositoryInformation();
-        return (ri.contractOwner, ri.factory, ri.name, ri.userIndex, ri.repoIndex, ri.donations);
+        return (
+            ri.contractOwner,
+            ri.factory,
+            ri.name,
+            ri.userIndex,
+            ri.repoIndex,
+            ri.donations,
+            ri.forked,
+            ri.forkOrigin
+        );
     }
 
     function updateUserIndex(uint256 _newUserIndex) public {

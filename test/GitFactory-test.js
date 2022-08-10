@@ -12,7 +12,7 @@ describe("Testing GitFactory", function() {
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, gitRepositoryManagementFacet;
+  let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitBranchFactory;
   let gitContractRegistry;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -20,10 +20,13 @@ describe("Testing GitFactory", function() {
     ACCOUNTS = await ethers.getSigners()
     DEFAULT_ACCOUNT_ADDRESS = ACCOUNTS[0].address;
 
+    gitBranchFactory = await hre.ethers.getContractFactory("GitBranch");
+
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
+    gitBranchFacet = await deployContract("GitBranch");
 
     await gitRepositoryManagementFacet.deployed();
-
+    await gitBranchFacet.deployed();
     const diamondCut = [];
     
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
@@ -59,7 +62,7 @@ describe("Testing GitFactory", function() {
     });
   
     it("Deploy the same GitRepository again, which should fail", async function(){
-      await expect(gitFactory.createRepository(repoName)).to.be.revertedWith("Repository exists already");
+      await expect(gitFactory.createRepository(repoName)).to.be.revertedWith("Repository exists");
 
       let repositories = await gitFactory.getRepositoryNames();
       let users = await gitFactory.getRepositoriesUserList(repoName);
@@ -116,7 +119,7 @@ describe("Testing GitFactory", function() {
 
       //before we do the test, we deploy a new repositories, which include the gitRepositoryManagement facet
       const diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)]
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions, false), true]
       ];
 
       gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
@@ -160,7 +163,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber() + 1,
           repoInfo.repoIndex.toNumber()
         ))
-      .to.be.revertedWith("User Index value is not correct");
+      .to.be.revertedWith("User Index value is incorrect");
     });
 
     it("Trying to delete a repository using a owner address but wrong repo index parameter", async function() {
@@ -171,7 +174,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber(),
           repoInfo.repoIndex.toNumber() + 1
         ))
-      .to.be.revertedWith("Repo Index value is not correct");
+      .to.be.revertedWith("Repo Index value is incorrect");
     });
 
     it("Trying to delete a repository using a owner address but wrong user and repo index parameter", async function() {
@@ -182,7 +185,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber() + 1,
           repoInfo.repoIndex.toNumber() + 1
         ))
-      .to.be.revertedWith("User Index value is not correct");
+      .to.be.revertedWith("User Index value is incorrect");
     });
 
     it("Deleting a repository", async function() {
@@ -311,6 +314,58 @@ describe("Testing GitFactory", function() {
     it("Testing that renounceOwnership function can be called by owner", async function() {
       await gitFactory.renounceOwnership();
       await expect(await gitFactory.owner()).to.be.equal(zeroAddress);
+    });
+  });
+
+  describe("Testing forking of repository", function() {
+
+    before(async function() {
+        await gitContractRegistry.addContractAddress([
+            gitRepositoryManagementFacet.address,
+            getSelectors(gitRepositoryManagementFacet.functions, false),
+            true
+        ]);
+
+        await gitContractRegistry.addContractAddress([
+            gitBranchFacet.address,
+            getSelectors(gitBranchFacet.functions, false),
+            true
+        ]);
+    });
+
+    it("Forking repository as owner fails", async function() {
+        let repositories = await gitFactory.getRepositoryNames();
+        let users = await gitFactory.getRepositoriesUserList(repositories[0]);
+        const repositoryLocation = await gitFactory.getUserRepoNameHash(users[0], repositories[0]);
+        await expect(gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation)).to.be.revertedWith("Forking impossible. Repository exists already");
+    });
+
+    it("Forking repository successful", async function() {
+        const gitRepoManagement = await ethers.getContractFactory("GitRepositoryManagement");
+
+        let repositories = await gitFactory.getRepositoryNames();
+        let users = await gitFactory.getRepositoriesUserList(repositories[0]);
+        const repositoryLocation = await gitFactory.getUserRepoNameHash(users[0], repositories[0]);
+
+        const originRepository = await gitFactory.getRepository(repositoryLocation);
+        const gitOrigin = await gitBranchFactory.attach(originRepository.location);
+
+        await gitOrigin.connect(ACCOUNTS[1]).push('master', 'Test123');
+        await gitOrigin.connect(ACCOUNTS[1]).push('doodle', 'Test123');
+
+        await gitFactory.forkRepository(repositoryLocation);
+
+        users = await gitFactory.getRepositoriesUserList(repositories[0]);
+        const forkedRepositoryLocation = await gitFactory.getUserRepoNameHash(users[1], repositories[0]);
+        
+        const repository = await gitFactory.getRepository(forkedRepositoryLocation);
+        const repo = await gitRepoManagement.attach(repository.location);
+        let repoInfo = await repo.getRepositoryInfo();
+
+        const gitFork = gitBranchFactory.attach(repository.location);
+        expect(repoInfo.forked).to.be.true;
+        expect(repoInfo.forkOrigin).to.be.equal(originRepository.location);
+        expect(await gitFork.getBranchNames()).to.be.deep.equal(await gitOrigin.getBranchNames());
     });
   });
 });

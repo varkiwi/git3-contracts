@@ -19,10 +19,20 @@ contract GitRepository {
         string name; 
         uint userIndex;
         uint repoIndex;
+        bool forked;
+        address forkOrigin;
     }
 
     constructor(RepositoryArgs memory _args) payable {
-        LibGitRepository.setRepositoryInfo(_args.factory, _args.name, _args.userIndex, _args.repoIndex, _args.owner);
+        LibGitRepository.setRepositoryInfo(
+            _args.factory,
+            _args.name,
+            _args.userIndex,
+            _args.repoIndex, 
+            _args.owner,
+            _args.forked,
+            _args.forkOrigin
+        );
     }
 
     // Find facet for function that is called and execute the
@@ -31,7 +41,7 @@ contract GitRepository {
         LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
         GitFactory factory = ri.factory;
         GitContractRegistry registry = factory.gitContractRegistry();
-        address facet = registry.getContractAddress(msg.sig);
+        address facet = registry.getContractAddress(msg.sig, ri.forked);
 
         require(facet != address(0), "Diamond: Function does not exist");
         assembly {

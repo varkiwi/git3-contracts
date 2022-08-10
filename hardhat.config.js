@@ -3,7 +3,6 @@ require("solidity-coverage");
 const fs = require('fs');
 const { uploadABIToPinata } = require("pin-abi");
 const { task } = require("hardhat/config");
-const { exit } = require("process");
 
 // const { uploadABIToPinata } = require("./tasks/uploadABIToPinata");
 
@@ -30,7 +29,7 @@ function readPrivateKey(name) {
     return data;
   } catch (err) {
     console.error(err.message);
-    return '';
+    return '0x0000000000000000000000000000000000000000000000000000000000000000';
   }
 }
 

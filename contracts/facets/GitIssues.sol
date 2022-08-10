@@ -60,14 +60,6 @@ contract GitIssues {
         GitIssuesStorage storage i = gitIssues();
         bytes32 userCidHash = getUserCidHash(msg.sender, issueCid);
         Issue storage issue = i.issues[userCidHash];
-        // if there exists already an issue but the state is closed, it is reopened
-        // if(issue.isActive && issue.state == IssueState.Closed) {
-        //     issue.state = IssueState.Open;
-        //     if (msg.value > 0) {
-        //         msg.sender.transfer(msg.value);
-        //     }
-        // // if no issue exists, a new one is opened
-        // } else 
         if (!issue.isActive){
             issue.isActive = true;
             issue.state = IssueState.Open;

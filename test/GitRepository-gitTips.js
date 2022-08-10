@@ -11,7 +11,7 @@ describe("Testing Git Tips", function() {
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, gitRepositoryManagementFacet, gitRepositoryLocation, diamondCut, gitTips;
+  let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitRepositoryLocation, diamondCut, gitTips, gitTipsFactory;
 
   before(async function(){
     ACCOUNTS = await ethers.getSigners()
@@ -19,13 +19,16 @@ describe("Testing Git Tips", function() {
 
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     gitTipsFacet = await deployContract("GitTips");
+    gitBranchFacet = await deployContract("GitBranch");
 
     await gitRepositoryManagementFacet.deployed();
     await gitTipsFacet.deployed();
+    await gitBranchFacet.deployed();
 
     diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions)],
-        [gitTipsFacet.address, getSelectors(gitTipsFacet.functions)]
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true],
+        [gitTipsFacet.address, getSelectors(gitTipsFacet.functions), false],
+        [gitBranchFacet.address, getSelectors(gitBranchFacet.functions), true]
       ];
 
     gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
@@ -37,7 +40,7 @@ describe("Testing Git Tips", function() {
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
     gitRepositoryLocation = await gitFactory.getRepository(userRepoNameHash);
 
-    const gitTipsFactory = await hre.ethers.getContractFactory("GitTips");
+    gitTipsFactory = await hre.ethers.getContractFactory("GitTips");
     gitTips = await gitTipsFactory.attach(gitRepositoryLocation.location);
   });
 
@@ -72,6 +75,27 @@ describe("Testing Git Tips", function() {
             const afterCollecting = txFees.add(await provider.getBalance(ACCOUNTS[0].address));
             expect(await gitTips.getTips()).to.be.equal(0);
             expect(afterCollecting).to.be.equal(shouldHave);
+        });
+    });
+  });
+
+  describe("Testing GitIssues of forked GitRepository", function() {
+    describe("Testing to use GitIssues facet from a forked repository", function() {
+        let forkedIssuesRepo;
+
+        before(async function() {
+            const repoName = 'repo_to_be_forked';
+            await gitFactory.createRepository(repoName);
+            const repositoryLocation = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+
+            await gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation);
+            const forkedRepositoryLocation = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
+            let forkedRepoLocation = await gitFactory.getRepository(forkedRepositoryLocation);
+            forkedIssuesRepo = await gitTipsFactory.attach(forkedRepoLocation.location);
+        });
+
+        it("Calling a GitIssue function results in a revert", async function() {
+            await expect(forkedIssuesRepo.collectTips()).to.be.revertedWith("Forked repository does not support this function");;
         });
     });
   });

@@ -2,9 +2,11 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
+
 import "./GitContractRegistry.sol";
 import "./GitRepository.sol";
 import "./facets/GitRepositoryManagement.sol";
+import "./facets/GitBranch.sol";
 import "./Ownable.sol";
 
 contract GitFactory is Ownable {
@@ -73,19 +75,58 @@ contract GitFactory is Ownable {
         bytes32 key = getUserRepoNameHash(msg.sender, _repoName);
 
         // check if the key has already an active repository
-        require(!_repoData.repositoryList[key].isActive, 'Repository exists already');
+        require(!_repoData.repositoryList[key].isActive, 'Repository exists');
         GitRepository newGitRepo = new GitRepository(
             GitRepository.RepositoryArgs({
                 owner: msg.sender,
                 factory: this,
                 name: _repoName,
                 userIndex: _repoData.reposUserList[_repoName].length,
-                repoIndex: _repoData.usersRepoList[msg.sender].length
+                repoIndex: _repoData.usersRepoList[msg.sender].length,
+                forked: false,
+                forkOrigin: address(0x0)
             }
         ));
 
         addRepository(key, _repoName, newGitRepo);
         emit NewRepositoryCreated(_repoName, msg.sender);
+    }
+
+    /**
+     * This functions is used to create a new forked reposiory. By providing a the location
+     * of a repository to be forked, a new GitForkedRepository smart contract is deployed.
+     *
+     * @param location (bytes32) - The location of the repository to be forked
+     */
+    function forkRepository(bytes32 location) public {
+        Repository storage toBeForkedRepo = _repoData.repositoryList[location];
+        //The user provides the location of the repository to be forked.
+        // We are checking if it exists in the first place
+        require(toBeForkedRepo.isActive, 'No such repository');
+        GitRepositoryManagement gitRepo = GitRepositoryManagement(address(_repoData.repositoryList[location].location));
+        address owner;
+        (owner, , , , , , ,) = gitRepo.getRepositoryInfo();
+        require(owner != msg.sender, "Forking impossible. Repository exists already");
+        
+        GitRepository newGitRepo = new GitRepository(
+            GitRepository.RepositoryArgs({
+                owner: msg.sender,
+                factory: this,
+                name: toBeForkedRepo.name,
+                userIndex: _repoData.reposUserList[toBeForkedRepo.name].length,
+                repoIndex: _repoData.usersRepoList[msg.sender].length,
+                forked: true,
+                forkOrigin: address(toBeForkedRepo.location)
+            }
+        ));        
+
+        GitBranch newGitRepoBranch = GitBranch(address(newGitRepo));
+        newGitRepoBranch.readRemoteBranchNamesIntoStorage();
+
+        bytes32 newLocation = getUserRepoNameHash(msg.sender, toBeForkedRepo.name);
+        // I guess both contract have to inherit from an abstract class. 
+        addRepository(newLocation, toBeForkedRepo.name, newGitRepo);
+        emit NewRepositoryCreated(toBeForkedRepo.name, msg.sender);
     }
 
     /**
@@ -140,9 +181,9 @@ contract GitFactory is Ownable {
         GitRepositoryManagement repoToDelete = GitRepositoryManagement(address(_repoData.repositoryList[key].location));
         uint _userIndex; 
         uint _repoIndex;
-        (, , , _userIndex, _repoIndex,) = repoToDelete.getRepositoryInfo();
-        require(userIndex == _userIndex, "User Index value is not correct");
-        require(repoIndex == _repoIndex, "Repo Index value is not correct");
+        (, , , _userIndex, _repoIndex, , ,) = repoToDelete.getRepositoryInfo();
+        require(userIndex == _userIndex, "User Index value is incorrect");
+        require(repoIndex == _repoIndex, "Repo Index value is incorrect");
 
         uint256 reposUserListLenght = _repoData.reposUserList[repoName].length;
         if ((userIndex + 1) == reposUserListLenght) {
