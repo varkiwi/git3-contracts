@@ -7,7 +7,7 @@ pragma experimental ABIEncoderV2;
 /******************************************************************************/
 
 import "./GitFactory.sol";
-import "./GitRepoContractRegistry.sol";
+import "./registries/GitRepoContractRegistry.sol";
 import "./libraries/LibGitRepository.sol";
 
 contract GitRepository {

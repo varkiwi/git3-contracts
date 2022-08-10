@@ -3,7 +3,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 
-import "./GitRepoContractRegistry.sol";
+import "./registries/GitRepoContractRegistry.sol";
 import "./GitRepository.sol";
 import "./facets/GitRepositoryManagement.sol";
 import "./facets/GitBranch.sol";
