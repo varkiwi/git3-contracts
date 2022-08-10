@@ -5,8 +5,8 @@ pragma experimental ABIEncoderV2;
 
 import "./registries/GitRepoContractRegistry.sol";
 import "./GitRepository.sol";
-import "./facets/GitRepositoryManagement.sol";
-import "./facets/GitBranch.sol";
+import "./repo_facets/GitRepositoryManagement.sol";
+import "./repo_facets/GitBranch.sol";
 import "./Ownable.sol";
 
 contract GitFactory is Ownable {
