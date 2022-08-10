@@ -13,7 +13,7 @@ describe("Testing GitFactory", function() {
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
   let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitBranchFactory;
-  let gitContractRegistry;
+  let gitRepoContractRegistry;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
   before(async function(){
@@ -29,10 +29,10 @@ describe("Testing GitFactory", function() {
     await gitBranchFacet.deployed();
     const diamondCut = [];
     
-    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
-    await gitContractRegistry.deployed();
+    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
+    await gitRepoContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [gitContractRegistry.address]);
+    gitFactory = await deployContract("GitFactory", [gitRepoContractRegistry.address]);
     await gitFactory.deployed();
   })
 
@@ -122,10 +122,10 @@ describe("Testing GitFactory", function() {
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions, false), true]
       ];
 
-      gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
-      await gitContractRegistry.deployed();
+      gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
+      await gitRepoContractRegistry.deployed();
   
-      gitFactory = await deployContract("GitFactory", [gitContractRegistry.address]);
+      gitFactory = await deployContract("GitFactory", [gitRepoContractRegistry.address]);
       await gitFactory.deployed();
       
       await gitFactory.createRepository(repoName);
@@ -320,13 +320,13 @@ describe("Testing GitFactory", function() {
   describe("Testing forking of repository", function() {
 
     before(async function() {
-        await gitContractRegistry.addContractAddress([
+        await gitRepoContractRegistry.addContractAddress([
             gitRepositoryManagementFacet.address,
             getSelectors(gitRepositoryManagementFacet.functions, false),
             true
         ]);
 
-        await gitContractRegistry.addContractAddress([
+        await gitRepoContractRegistry.addContractAddress([
             gitBranchFacet.address,
             getSelectors(gitBranchFacet.functions, false),
             true

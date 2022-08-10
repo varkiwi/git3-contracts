@@ -7,7 +7,7 @@ pragma experimental ABIEncoderV2;
 /******************************************************************************/
 
 import "./GitFactory.sol";
-import "./GitContractRegistry.sol";
+import "./GitRepoContractRegistry.sol";
 import "./libraries/LibGitRepository.sol";
 
 contract GitRepository {
@@ -40,7 +40,7 @@ contract GitRepository {
     fallback() external payable {
         LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
         GitFactory factory = ri.factory;
-        GitContractRegistry registry = factory.gitContractRegistry();
+        GitRepoContractRegistry registry = factory.gitRepoContractRegistry();
         address facet = registry.getContractAddress(msg.sig, ri.forked);
 
         require(facet != address(0), "Diamond: Function does not exist");

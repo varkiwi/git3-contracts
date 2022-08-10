@@ -17,7 +17,7 @@ Here are the addresses for Polygon Mumbai:
     * GitBranchFacet's address is:         0xCE466a8c46747228448D1D4BC6e3939499c6a36F
     * GitIssuesFacet's address is:         0x2a4c626D058D3FD9475E1637C8C62D1B46D0a0d5
     * GitTipsFacet's address is:           0x3e40ACfAd00D27aF22bC9225A6c76eE56BD3C38e
-    * GitContractRegistry's address is:    0x1A5e394A7c68F147549e5dF4C8EaA9FbE9e7dA62
+    * GitRepoContractRegistry's address is:    0x1A5e394A7c68F147549e5dF4C8EaA9FbE9e7dA62
     * GitFactory's address:                0x9Af5B605f4c9833692DF8cCcF021d62C6Cc4df8F
 
 Here are the addresses for Nervo's Godwoken v1:
@@ -26,7 +26,7 @@ Here are the addresses for Nervo's Godwoken v1:
     * GitBranchFacet's address is:         0xf754757E1C896dB5e773b8cD096B60A22E16d913
     * GitIssuesFacet's address is:         0xf9aDC122437693D216913a1d3159d0b57Ad1F202
     * GitTipsFacet's address is:           0x391748A16d92Dd2F09636249502f2CC60878E60f
-    * GitContractRegistry's address is:    0xC432199644D0d08F17b635740A08A9B03f4d82a3
+    * GitRepoContractRegistry's address is:    0xC432199644D0d08F17b635740A08A9B03f4d82a3
     * GitFactory's address:                0x9639eB95Ae2Ba325027006fb2D81f667e3ebFE18
 
 In case you want to download the abis, here is the CID: `QmYBw83oKD3YDSeC2MyVDS3a3E5zbej6Z9iDQd185zABsk`

@@ -3,7 +3,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 
-import "./GitContractRegistry.sol";
+import "./GitRepoContractRegistry.sol";
 import "./GitRepository.sol";
 import "./facets/GitRepositoryManagement.sol";
 import "./facets/GitBranch.sol";
@@ -55,13 +55,13 @@ contract GitFactory is Ownable {
     // saving the amount of tips received
     uint256 public tips;
 
-    GitContractRegistry public gitContractRegistry;
+    GitRepoContractRegistry public gitRepoContractRegistry;
 
     // Struct from LibGitFactory, which stores all repository related information
     Repositories private _repoData;
 
-    constructor(GitContractRegistry _gitContractRegistry) {
-        gitContractRegistry = _gitContractRegistry;
+    constructor(GitRepoContractRegistry _gitRepoContractRegistry) {
+        gitRepoContractRegistry = _gitRepoContractRegistry;
     }
 
     /**

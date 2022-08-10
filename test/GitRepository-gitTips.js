@@ -31,10 +31,10 @@ describe("Testing Git Tips", function() {
         [gitBranchFacet.address, getSelectors(gitBranchFacet.functions), true]
       ];
 
-    gitContractRegistry = await deployContract("GitContractRegistry",[diamondCut]);
-    await gitContractRegistry.deployed();
+    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
+    await gitRepoContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [gitContractRegistry.address]);
+    gitFactory = await deployContract("GitFactory", [gitRepoContractRegistry.address]);
     await gitFactory.deployed();
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);

@@ -1,4 +1,4 @@
-We have a GitContractRegistry which stores function signatures and a contract
+We have a GitRepoContractRegistry which stores function signatures and a contract
 address which has the function.
 The registry contract is used by the Repository contracts to lookup the address of the contract to be executed.
 
