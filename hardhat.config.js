@@ -29,7 +29,7 @@ function readPrivateKey(name) {
     return data;
   } catch (err) {
     console.error(err.message);
-    return '';
+    return '0x0000000000000000000000000000000000000000000000000000000000000000';
   }
 }
 
