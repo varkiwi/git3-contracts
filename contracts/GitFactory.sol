@@ -3,11 +3,16 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 
-import "./registries/GitRepoContractRegistry.sol";
 import "./GitRepository.sol";
+import "./Ownable.sol";
+
+import "./libraries/LibGitRepository.sol";
+
+import "./registries/GitFactoryContractRegistry.sol";
+import "./registries/GitRepoContractRegistry.sol";
+
 import "./repo_facets/GitRepositoryManagement.sol";
 import "./repo_facets/GitBranch.sol";
-import "./Ownable.sol";
 
 contract GitFactory is Ownable {
     event NewRepositoryCreated(string name, address user);
@@ -56,12 +61,17 @@ contract GitFactory is Ownable {
     uint256 public tips;
 
     GitRepoContractRegistry public gitRepoContractRegistry;
+    GitFactoryContractRegistry public gitFactoryContractRegistry;
 
     // Struct from LibGitFactory, which stores all repository related information
     Repositories private _repoData;
 
-    constructor(GitRepoContractRegistry _gitRepoContractRegistry) {
+    constructor(
+        GitRepoContractRegistry _gitRepoContractRegistry,
+        GitFactoryContractRegistry _gitFactoryContractRegistry
+    ) {
         gitRepoContractRegistry = _gitRepoContractRegistry;
+        gitFactoryContractRegistry = _gitFactoryContractRegistry;
     }
 
     /**

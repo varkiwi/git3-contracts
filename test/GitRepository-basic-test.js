@@ -20,12 +20,18 @@ describe("Testing Git Repository", function() {
 
     diamondCut = [
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true]
-      ];
+    ];
 
-      gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
+    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
     await gitRepoContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [gitRepoContractRegistry.address]);
+    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCut]);
+    await gitFactoryContractRegistry.deployed();
+
+    gitFactory = await deployContract("GitFactory", [
+        gitRepoContractRegistry.address,
+        gitFactoryContractRegistry.address
+    ]);
     await gitFactory.deployed();
     await gitFactory.createRepository(repoName);
     const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);

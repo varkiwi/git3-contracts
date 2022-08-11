@@ -13,7 +13,7 @@ describe("Testing GitFactory", function() {
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
   let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitBranchFactory;
-  let gitRepoContractRegistry;
+  let gitRepoContractRegistry, gitFactoryContractRegistry;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
   before(async function(){
@@ -32,7 +32,13 @@ describe("Testing GitFactory", function() {
     gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
     await gitRepoContractRegistry.deployed();
 
-    gitFactory = await deployContract("GitFactory", [gitRepoContractRegistry.address]);
+    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCut]);
+    await gitFactoryContractRegistry.deployed();
+
+    gitFactory = await deployContract("GitFactory", [
+        gitRepoContractRegistry.address,
+        gitFactoryContractRegistry.address
+    ]);
     await gitFactory.deployed();
   })
 
@@ -125,7 +131,13 @@ describe("Testing GitFactory", function() {
       gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
       await gitRepoContractRegistry.deployed();
   
-      gitFactory = await deployContract("GitFactory", [gitRepoContractRegistry.address]);
+      gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCut]);
+      await gitFactoryContractRegistry.deployed();
+
+      gitFactory = await deployContract("GitFactory", [
+        gitRepoContractRegistry.address,
+        gitFactoryContractRegistry.address
+      ]);
       await gitFactory.deployed();
       
       await gitFactory.createRepository(repoName);
