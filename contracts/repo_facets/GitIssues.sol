@@ -88,7 +88,7 @@ contract GitIssues {
     function appendAnswerToIssue(bytes32 issueHash, string calldata issueAnswerCid) public payable {
         GitIssuesStorage storage i = gitIssues();
         require(i.issues[issueHash].isActive, "Issue with given cid does not exist");
-        // require(!i.issues[issueHash].resolved, "Can't add a bounty for already resolved issue");
+
         i.issues[issueHash].issueAnswers.push(IssueText({
             cid: issueAnswerCid,
             author: msg.sender

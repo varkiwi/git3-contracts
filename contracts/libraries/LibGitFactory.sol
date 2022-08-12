@@ -9,6 +9,7 @@ library LibGitFactory {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     bytes32 constant FACTORY_REPOSITORIES_POSITION = keccak256("git.factory.repositories");
+    bytes32 constant FACTORY_INFORMATION_POSITION = keccak256("git.factory.information");
 
     struct Repository {
         bool isActive;
@@ -50,10 +51,31 @@ library LibGitFactory {
         mapping(string => ActiveRepo) activeRepository;
     }
 
+    struct FactoryInformation {
+        address owner;
+        uint tips;
+    }
+
+    function setFactoryInfo(
+        address _newOwner
+    ) internal {
+        FactoryInformation storage fi = factoryInformation();
+        fi.owner = _newOwner;
+        fi.tips = 0;
+        emit OwnershipTransferred(address(0x0), _newOwner);
+    }
+
     function repositoriesInformation() internal pure returns (Repositories storage ri) {
         bytes32 position = FACTORY_REPOSITORIES_POSITION;
         assembly {
             ri.slot := position
+        }
+    }
+
+    function factoryInformation() internal pure returns (FactoryInformation storage fi) {
+        bytes32 position = FACTORY_INFORMATION_POSITION;
+        assembly {
+            fi.slot := position
         }
     }
 }

@@ -77,7 +77,7 @@ describe("Testing Git Tips", function() {
         it("Non-owner tying to collecting tips - fails", async function() {
             await expect(
                 gitTips.connect(ACCOUNTS[1]).collectTips())
-                .to.be.revertedWith('You are not allowd to perform this action');
+                .to.be.revertedWith('You are not allowed to perform this action');
             const tips = await gitTips.getTips();
             await expect(tips.toHexString()).to.be.equal(tip.toHexString());
         });

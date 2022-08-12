@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import "./Ownable.sol";
 
+import "./libraries/LibGitFactory.sol";
+
 import "./registries/GitFactoryContractRegistry.sol";
 import "./registries/GitRepoContractRegistry.sol";
 
@@ -20,6 +22,7 @@ contract GitFactory is Ownable {
     ) {
         gitRepoContractRegistry = _gitRepoContractRegistry;
         gitFactoryContractRegistry = _gitFactoryContractRegistry;
+        LibGitFactory.setFactoryInfo(msg.sender);
     }
 
     fallback() external payable {
@@ -39,20 +42,12 @@ contract GitFactory is Ownable {
                 }
         }
     }
-    
-    /**
-     * Function in order to collect the collected tips.
-     */
-    function collectTips() public onlyOwner() {
-        // payable(owner()).transfer(tips * 99 / 100);
-        payable(owner()).transfer(tips);
-        tips = 0;
-    }
         
     /**
      * Receive function in order to receive tips. No calldata is set
      */
     receive() external payable {
-        tips += msg.value;
+        LibGitFactory.FactoryInformation storage fi = LibGitFactory.factoryInformation();
+        fi.tips += msg.value;
     }
 }

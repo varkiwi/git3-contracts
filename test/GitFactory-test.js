@@ -13,7 +13,7 @@ describe("Testing GitFactory", function() {
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
   let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitBranchFactory;
-  let repositoryManagementContract;
+  let repositoryManagementContract, gitFactoryTipsContract;
   let gitRepoContractRegistry, gitFactoryContractRegistry;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -27,6 +27,7 @@ describe("Testing GitFactory", function() {
     gitBranchFacet = await deployContract("GitBranch");
 
     createRepositoryFacet = await deployContract("RepositoryManagement");
+    gitFactoryTips = await deployContract("GitFactoryTips");
 
     await gitRepositoryManagementFacet.deployed();
     await gitBranchFacet.deployed();
@@ -35,7 +36,8 @@ describe("Testing GitFactory", function() {
     const diamondCutRepo = [];
     
     const diamondCutFactory = [
-        [createRepositoryFacet.address, getSelectors(createRepositoryFacet.functions)]
+        [createRepositoryFacet.address, getSelectors(createRepositoryFacet.functions)],
+        [gitFactoryTips.address, getSelectors(gitFactoryTips.functions)]
     ];
     
     gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCutRepo]);
@@ -52,6 +54,10 @@ describe("Testing GitFactory", function() {
 
     repositoryManagementFactory = await hre.ethers.getContractFactory("RepositoryManagement");
     repositoryManagementContract = await repositoryManagementFactory.attach(gitFactory.address);
+
+    gitFactoryTipsFactory = await hre.ethers.getContractFactory("GitFactoryTips");
+    gitFactoryTipsContract = await gitFactoryTipsFactory.attach(gitFactory.address);
+
   })
 
   describe("Testing GitFactory settings after deployment", function() {
@@ -136,7 +142,9 @@ describe("Testing GitFactory", function() {
       const gitRepoFactory = await ethers.getContractFactory("GitRepositoryManagement");
       
       createRepositoryFacet = await deployContract("RepositoryManagement");
+      gitFactoryTips = await deployContract("GitFactoryTips");
       await createRepositoryFacet.deployed();
+      await gitFactoryTips.deployed();
       
       //before we do the test, we deploy a new repositories, which include the gitRepositoryManagement facet
       const diamondCutRepo = [
@@ -144,7 +152,8 @@ describe("Testing GitFactory", function() {
       ];
 
       const diamondCutFactory = [
-        [createRepositoryFacet.address, getSelectors(createRepositoryFacet.functions, false)]
+        [createRepositoryFacet.address, getSelectors(createRepositoryFacet.functions)],
+        [gitFactoryTips.address, getSelectors(gitFactoryTips.functions)]
       ];
       
       gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCutRepo]);
@@ -161,6 +170,9 @@ describe("Testing GitFactory", function() {
 
       repositoryManagementFactory = await hre.ethers.getContractFactory("RepositoryManagement");
       repositoryManagementContract = await repositoryManagementFactory.attach(gitFactory.address);
+
+      gitFactoryTipsFactory = await hre.ethers.getContractFactory("GitFactoryTips");
+      gitFactoryTipsContract = await gitFactoryTipsFactory.attach(gitFactory.address);
 
       await repositoryManagementContract.createRepository(repoName);
       await repositoryManagementContract.connect(ACCOUNTS[1]).createRepository(repoName);
@@ -290,6 +302,7 @@ describe("Testing GitFactory", function() {
     it("Send ether to gitFactory", async function() {
       const userBalance = await provider.getBalance(DEFAULT_ACCOUNT_ADDRESS);
       const tip = ethers.BigNumber.from(1337);
+      console.log('Factory address', gitFactory.address);
       let tx = {
         to: gitFactory.address,
         value: tip.toNumber()
@@ -299,20 +312,23 @@ describe("Testing GitFactory", function() {
       const factoryBalance = await provider.getBalance(gitFactory.address);
       const newUserBalance = await provider.getBalance(DEFAULT_ACCOUNT_ADDRESS);
       const txReceipt = await provider.getTransactionReceipt(receipt.hash);
-
+      
+      console.log('NEW USER BALANCE', newUserBalance);
       expect(factoryBalance).to.be.equal(tip);
       // calculating the used ether for sending the tip and tx costs
       const expectedBalance = userBalance.sub(receipt.gasPrice.mul(txReceipt.cumulativeGasUsed)).sub(tip);
       expect(newUserBalance).to.be.equal(expectedBalance);
+      console.log(await gitFactoryTipsContract.getTips());
     });
 
     it("Collect tips using a non-owner account", async function() {
-      await expect(gitFactory.connect(ACCOUNTS[1]).collectTips()).to.be.revertedWith("Ownable: caller is not the owner");
+      await expect(gitFactoryTipsContract.connect(ACCOUNTS[1]).collectTips()).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it("Collect tips as owner", async function() {
       const userBalance = await provider.getBalance(DEFAULT_ACCOUNT_ADDRESS);
-      const receipt = await gitFactory.collectTips();
+
+      const receipt = await gitFactoryTipsContract.collectTips();
       const newUserBalance = await provider.getBalance(DEFAULT_ACCOUNT_ADDRESS);
       const txReceipt = await provider.getTransactionReceipt(receipt.hash);
 
