@@ -4,6 +4,9 @@ pragma experimental ABIEncoderV2;
 
 import "../GitFactory.sol";
 
+import "../repo_facets/GitRepositoryManagement.sol";
+import "../repo_facets/GitBranch.sol";
+
 library LibGitRepository {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 

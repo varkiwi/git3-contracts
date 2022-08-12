@@ -3,6 +3,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "../GitFactory.sol";
+import "../GitRepository.sol";
 
 library LibGitFactory {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);

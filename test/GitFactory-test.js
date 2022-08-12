@@ -13,6 +13,7 @@ describe("Testing GitFactory", function() {
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
   let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitBranchFactory;
+  let repositoryManagementContract;
   let gitRepoContractRegistry, gitFactoryContractRegistry;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -25,14 +26,22 @@ describe("Testing GitFactory", function() {
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     gitBranchFacet = await deployContract("GitBranch");
 
+    createRepositoryFacet = await deployContract("RepositoryManagement");
+
     await gitRepositoryManagementFacet.deployed();
     await gitBranchFacet.deployed();
-    const diamondCut = [];
+    await createRepositoryFacet.deployed();
+
+    const diamondCutRepo = [];
     
-    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
+    const diamondCutFactory = [
+        [createRepositoryFacet.address, getSelectors(createRepositoryFacet.functions)]
+    ];
+    
+    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCutRepo]);
     await gitRepoContractRegistry.deployed();
 
-    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCut]);
+    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCutFactory]);
     await gitFactoryContractRegistry.deployed();
 
     gitFactory = await deployContract("GitFactory", [
@@ -40,6 +49,9 @@ describe("Testing GitFactory", function() {
         gitFactoryContractRegistry.address
     ]);
     await gitFactory.deployed();
+
+    repositoryManagementFactory = await hre.ethers.getContractFactory("RepositoryManagement");
+    repositoryManagementContract = await repositoryManagementFactory.attach(gitFactory.address);
   })
 
   describe("Testing GitFactory settings after deployment", function() {
@@ -55,10 +67,10 @@ describe("Testing GitFactory", function() {
 
   describe("Testing creation of new GitRepository", function() {
     it("Deploy a new GitRepository", async function(){
-      await gitFactory.createRepository(repoName);
+      await repositoryManagementContract.createRepository(repoName);
   
-      let repositories = await gitFactory.getRepositoryNames();
-      let users = await gitFactory.getRepositoriesUserList(repoName);
+      let repositories = await repositoryManagementContract.getRepositoryNames();
+      let users = await repositoryManagementContract.getRepositoriesUserList(repoName);
   
       expect(repositories[0]).to.equal(repoName);
       expect(repositories.length).to.equal(1);
@@ -68,10 +80,10 @@ describe("Testing GitFactory", function() {
     });
   
     it("Deploy the same GitRepository again, which should fail", async function(){
-      await expect(gitFactory.createRepository(repoName)).to.be.revertedWith("Repository exists");
+      await expect(repositoryManagementContract.createRepository(repoName)).to.be.revertedWith("Repository exists");
 
-      let repositories = await gitFactory.getRepositoryNames();
-      let users = await gitFactory.getRepositoriesUserList(repoName);
+      let repositories = await repositoryManagementContract.getRepositoryNames();
+      let users = await repositoryManagementContract.getRepositoriesUserList(repoName);
 
       expect(repositories[0]).to.equal(repoName);
       expect(repositories.length).to.equal(1);
@@ -81,10 +93,10 @@ describe("Testing GitFactory", function() {
     });
 
     it("Deploy the same GitRepository again, using different account", async function(){
-      await gitFactory.connect(ACCOUNTS[1]).createRepository(repoName);
+      await repositoryManagementContract.connect(ACCOUNTS[1]).createRepository(repoName);
 
-      let repositories = await gitFactory.getRepositoryNames();
-      let users = await gitFactory.getRepositoriesUserList(repoName);
+      let repositories = await repositoryManagementContract.getRepositoryNames();
+      let users = await repositoryManagementContract.getRepositoriesUserList(repoName);
       
       expect(repositories[0]).to.equal(repoName);
       expect(repositories.length).to.equal(1);
@@ -98,20 +110,20 @@ describe("Testing GitFactory", function() {
   describe("Testing GitRepository information functions", function() {
 
     it("Check registered repository names", async function() {
-      const repoNames = await gitFactory.getRepositoryNames();
+      const repoNames = await repositoryManagementContract.getRepositoryNames();
       expect(repoNames).to.deep.equal([repoName]);
     });
 
     it("Check owner and users registered GitRepository names", async function(){
-      const ownerRepos = await gitFactory.getUsersRepositories(DEFAULT_ACCOUNT_ADDRESS);
+      const ownerRepos = await repositoryManagementContract.getUsersRepositories(DEFAULT_ACCOUNT_ADDRESS);
       expect(ownerRepos).to.deep.equal([repoName]);
 
-      const userRepos = await gitFactory.getUsersRepositories(ACCOUNTS[1].address);
+      const userRepos = await repositoryManagementContract.getUsersRepositories(ACCOUNTS[1].address);
       expect(userRepos).to.deep.equal([repoName]);
     });
 
-    it("Get users to a repositry name", async function() {
-      let users = await gitFactory.getRepositoriesUserList(repoName);
+    it("Get users to a repository name", async function() {
+      let users = await repositoryManagementContract.getRepositoriesUserList(repoName);
       expect(users).to.deep.equal([DEFAULT_ACCOUNT_ADDRESS, ACCOUNTS[1].address]);
     })
   });
@@ -122,16 +134,23 @@ describe("Testing GitFactory", function() {
     beforeEach(async function() {
       let users, userRepoHash, repository;
       const gitRepoFactory = await ethers.getContractFactory("GitRepositoryManagement");
-
+      
+      createRepositoryFacet = await deployContract("RepositoryManagement");
+      await createRepositoryFacet.deployed();
+      
       //before we do the test, we deploy a new repositories, which include the gitRepositoryManagement facet
-      const diamondCut = [
-        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions, false), true]
+      const diamondCutRepo = [
+        [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true]
       ];
 
-      gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
+      const diamondCutFactory = [
+        [createRepositoryFacet.address, getSelectors(createRepositoryFacet.functions, false)]
+      ];
+      
+      gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCutRepo]);
       await gitRepoContractRegistry.deployed();
   
-      gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCut]);
+      gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCutFactory]);
       await gitFactoryContractRegistry.deployed();
 
       gitFactory = await deployContract("GitFactory", [
@@ -139,18 +158,22 @@ describe("Testing GitFactory", function() {
         gitFactoryContractRegistry.address
       ]);
       await gitFactory.deployed();
-      
-      await gitFactory.createRepository(repoName);
-      await gitFactory.connect(ACCOUNTS[1]).createRepository(repoName);
-      await gitFactory.createRepository(newRepoName);
 
-      const repoNames = await gitFactory.getRepositoryNames();
+      repositoryManagementFactory = await hre.ethers.getContractFactory("RepositoryManagement");
+      repositoryManagementContract = await repositoryManagementFactory.attach(gitFactory.address);
+
+      await repositoryManagementContract.createRepository(repoName);
+      await repositoryManagementContract.connect(ACCOUNTS[1]).createRepository(repoName);
+      await repositoryManagementContract.createRepository(newRepoName);
+
+      const repoNames = await repositoryManagementContract.getRepositoryNames();
+      
       for (let repo of repoNames) {
-        users = await gitFactory.getRepositoriesUserList(repo);
+        users = await repositoryManagementContract.getRepositoriesUserList(repo);
         repoUserMapping[repo] = [];
         for (let user of users) {
-          userRepoHash = await gitFactory.getUserRepoNameHash(user, repo);
-          repository = await gitFactory.getRepository(userRepoHash);
+          userRepoHash = await repositoryManagementContract.getUserRepoNameHash(user, repo);
+          repository = await repositoryManagementContract.getRepository(userRepoHash);
           repoUserMapping[repo].push(await gitRepoFactory.attach(repository.location));
         }
       }
@@ -159,7 +182,7 @@ describe("Testing GitFactory", function() {
     it("Trying to delete a repository using a non-owner address", async function() {
       const repoInfo = await repoUserMapping[newRepoName][0].getRepositoryInfo();
       await expect(
-        gitFactory.connect(ACCOUNTS[1]).removeRepository(
+        repositoryManagementContract.connect(ACCOUNTS[1]).removeRepository(
           newRepoName, 
           repoInfo.userIndex.toNumber(),
           repoInfo.repoIndex.toNumber()
@@ -170,7 +193,7 @@ describe("Testing GitFactory", function() {
     it("Trying to delete a repository using a owner address but wrong user index parameter", async function() {
       const repoInfo = await repoUserMapping[newRepoName][0].getRepositoryInfo();
       await expect(
-        gitFactory.removeRepository(
+        repositoryManagementContract.removeRepository(
           newRepoName, 
           repoInfo.userIndex.toNumber() + 1,
           repoInfo.repoIndex.toNumber()
@@ -181,7 +204,7 @@ describe("Testing GitFactory", function() {
     it("Trying to delete a repository using a owner address but wrong repo index parameter", async function() {
       const repoInfo = await repoUserMapping[newRepoName][0].getRepositoryInfo();
       await expect(
-        gitFactory.removeRepository(
+        repositoryManagementContract.removeRepository(
           newRepoName, 
           repoInfo.userIndex.toNumber(),
           repoInfo.repoIndex.toNumber() + 1
@@ -192,7 +215,7 @@ describe("Testing GitFactory", function() {
     it("Trying to delete a repository using a owner address but wrong user and repo index parameter", async function() {
       const repoInfo = await repoUserMapping[newRepoName][0].getRepositoryInfo();
       await expect(
-        gitFactory.removeRepository(
+        repositoryManagementContract.removeRepository(
           newRepoName, 
           repoInfo.userIndex.toNumber() + 1,
           repoInfo.repoIndex.toNumber() + 1
@@ -201,41 +224,39 @@ describe("Testing GitFactory", function() {
     });
 
     it("Deleting a repository", async function() {
-      // const gitRepoFactory = await ethers.getContractFactory("GitRepositoryManagement");
       const repoInfo = await repoUserMapping[newRepoName][0].getRepositoryInfo();
-      await gitFactory.removeRepository(newRepoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
+      await repositoryManagementContract.removeRepository(newRepoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
 
-      let userRepoHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, newRepoName);
-      let repository = await gitFactory.getRepository(userRepoHash);
+      let userRepoHash = await repositoryManagementContract.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, newRepoName);
+      let repository = await repositoryManagementContract.getRepository(userRepoHash);
 
       expect(repository.isActive).to.be.false;
 
-      const repositoryNames = await gitFactory.getRepositoryNames();
+      const repositoryNames = await repositoryManagementContract.getRepositoryNames();
       expect(repositoryNames.length).to.be.equal(1);
       expect(repositoryNames).to.deep.equal(['TestRepo']);
     });
 
     it("Deleting first two repositories to check if repo index in the second repo in the name list is updated", async function() {
-      // deleting first TestRepo owner by default account
       let repoInfo = await repoUserMapping[repoName][0].getRepositoryInfo();
-      await gitFactory.removeRepository(repoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
+      await repositoryManagementContract.removeRepository(repoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
 
-      let userRepoHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
-      let repository = await gitFactory.getRepository(userRepoHash);
+      let userRepoHash = await repositoryManagementContract.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+      let repository = await repositoryManagementContract.getRepository(userRepoHash);
 
       expect(repository.isActive).to.be.false;
 
       // deleting second TestRepo owner by another account
       repoInfo = await repoUserMapping[repoName][1].getRepositoryInfo();
-      await gitFactory.connect(ACCOUNTS[1]).removeRepository(repoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
+      await repositoryManagementContract.connect(ACCOUNTS[1]).removeRepository(repoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
 
-      userRepoHash = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
-      repository = await gitFactory.getRepository(userRepoHash);
+      userRepoHash = await repositoryManagementContract.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
+      repository = await repositoryManagementContract.getRepository(userRepoHash);
 
       expect(repository.isActive).to.be.false;
 
       // checking if the names list is correctly updated
-      const repositoryNames = await gitFactory.getRepositoryNames();
+      const repositoryNames = await repositoryManagementContract.getRepositoryNames();
       expect(repositoryNames.length).to.be.equal(1);
       expect(repositoryNames).to.deep.equal(['TestRepo-2']);
 
@@ -246,17 +267,17 @@ describe("Testing GitFactory", function() {
 
     it("Deleting repo of default user so that user index of second users is updated", async function() {
       const gitRepoFactory = await ethers.getContractFactory("GitRepositoryManagement");
-      const userRepoHash = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
-      const repository = await gitFactory.getRepository(userRepoHash);
+      const userRepoHash = await repositoryManagementContract.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
+      const repository = await repositoryManagementContract.getRepository(userRepoHash);
       const repo = await gitRepoFactory.attach(repository.location);
       let repoInfo = await repo.getRepositoryInfo();
       
       expect(repoInfo.userIndex.toNumber()).to.be.equal(1);
       // deleting first TestRepo owner by default account
       repoInfo = await repoUserMapping[repoName][0].getRepositoryInfo();
-      await gitFactory.removeRepository(repoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
+      await repositoryManagementContract.removeRepository(repoName, repoInfo.userIndex.toNumber(), repoInfo.repoIndex.toNumber());
 
-      const users = await gitFactory.getRepositoriesUserList(repoName);
+      const users = await repositoryManagementContract.getRepositoriesUserList(repoName);
       expect(users.length).to.be.equal(1);
       expect(users).to.deep.equal([ACCOUNTS[1].address]);
 
@@ -346,31 +367,31 @@ describe("Testing GitFactory", function() {
     });
 
     it("Forking repository as owner fails", async function() {
-        let repositories = await gitFactory.getRepositoryNames();
-        let users = await gitFactory.getRepositoriesUserList(repositories[0]);
-        const repositoryLocation = await gitFactory.getUserRepoNameHash(users[0], repositories[0]);
-        await expect(gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation)).to.be.revertedWith("Forking impossible. Repository exists already");
+        let repositories = await repositoryManagementContract.getRepositoryNames();
+        let users = await repositoryManagementContract.getRepositoriesUserList(repositories[0]);
+        const repositoryLocation = await repositoryManagementContract.getUserRepoNameHash(users[0], repositories[0]);
+        await expect(repositoryManagementContract.connect(ACCOUNTS[1]).forkRepository(repositoryLocation)).to.be.revertedWith("Forking impossible. Repository exists already");
     });
 
     it("Forking repository successful", async function() {
         const gitRepoManagement = await ethers.getContractFactory("GitRepositoryManagement");
 
-        let repositories = await gitFactory.getRepositoryNames();
-        let users = await gitFactory.getRepositoriesUserList(repositories[0]);
-        const repositoryLocation = await gitFactory.getUserRepoNameHash(users[0], repositories[0]);
+        let repositories = await repositoryManagementContract.getRepositoryNames();
+        let users = await repositoryManagementContract.getRepositoriesUserList(repositories[0]);
+        const repositoryLocation = await repositoryManagementContract.getUserRepoNameHash(users[0], repositories[0]);
 
-        const originRepository = await gitFactory.getRepository(repositoryLocation);
+        const originRepository = await repositoryManagementContract.getRepository(repositoryLocation);
         const gitOrigin = await gitBranchFactory.attach(originRepository.location);
 
         await gitOrigin.connect(ACCOUNTS[1]).push('master', 'Test123');
         await gitOrigin.connect(ACCOUNTS[1]).push('doodle', 'Test123');
 
-        await gitFactory.forkRepository(repositoryLocation);
+        await repositoryManagementContract.forkRepository(repositoryLocation);
 
-        users = await gitFactory.getRepositoriesUserList(repositories[0]);
-        const forkedRepositoryLocation = await gitFactory.getUserRepoNameHash(users[1], repositories[0]);
+        users = await repositoryManagementContract.getRepositoriesUserList(repositories[0]);
+        const forkedRepositoryLocation = await repositoryManagementContract.getUserRepoNameHash(users[1], repositories[0]);
         
-        const repository = await gitFactory.getRepository(forkedRepositoryLocation);
+        const repository = await repositoryManagementContract.getRepository(forkedRepositoryLocation);
         const repo = await gitRepoManagement.attach(repository.location);
         let repoInfo = await repo.getRepositoryInfo();
 

@@ -8,24 +8,32 @@ describe("Testing Git Repository", function() {
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, gitRepositoryManagementFacet, gitRepositoryLocation, diamondCut;
+  let gitFactory, gitRepositoryManagementFacet, gitRepositoryLocation;
+  let repositoryManagementContract,repositoryManagementFacet;
+  let diamondCutRepo, diamondCutFactory;
 
   before(async function(){
     ACCOUNTS = await ethers.getSigners()
     DEFAULT_ACCOUNT_ADDRESS = ACCOUNTS[0].address;
 
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
+    repositoryManagementFacet = await deployContract("RepositoryManagement");
 
     await gitRepositoryManagementFacet.deployed();
+    await repositoryManagementFacet.deployed();
 
-    diamondCut = [
+    diamondCutRepo = [
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true]
     ];
 
-    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
+    diamondCutFactory = [
+        [repositoryManagementFacet.address, getSelectors(repositoryManagementFacet.functions)]
+    ];
+
+    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCutRepo]);
     await gitRepoContractRegistry.deployed();
 
-    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCut]);
+    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCutFactory]);
     await gitFactoryContractRegistry.deployed();
 
     gitFactory = await deployContract("GitFactory", [
@@ -33,9 +41,13 @@ describe("Testing Git Repository", function() {
         gitFactoryContractRegistry.address
     ]);
     await gitFactory.deployed();
-    await gitFactory.createRepository(repoName);
-    const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
-    gitRepositoryLocation = await gitFactory.getRepository(userRepoNameHash);
+
+    repositoryManagementFactory = await hre.ethers.getContractFactory("RepositoryManagement");
+    repositoryManagementContract = await repositoryManagementFactory.attach(gitFactory.address);
+
+    await repositoryManagementContract.createRepository(repoName);
+    const userRepoNameHash = await repositoryManagementContract.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+    gitRepositoryLocation = await repositoryManagementContract.getRepository(userRepoNameHash);
   });
 
   describe("Testing GitRepositoryManagement of GitRepository", function(){

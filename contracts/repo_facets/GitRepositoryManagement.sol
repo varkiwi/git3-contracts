@@ -17,7 +17,6 @@ contract GitRepositoryManagement {
         }
     }
 
-
     function getRepositoryInfo() public view returns (
         address contractOwner,
         GitFactory factory,

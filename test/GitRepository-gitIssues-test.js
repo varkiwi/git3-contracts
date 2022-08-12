@@ -22,7 +22,9 @@ describe("Testing Git Issues of Git Repository", function() {
 
   let ACCOUNTS;
   let DEFAULT_ACCOUNT_ADDRESS;
-  let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitRepositoryLocation, diamondCut, gitIssuesFactory, gitIssues;
+  let gitFactory, gitRepositoryManagementFacet, gitBranchFacet, gitRepositoryLocation, gitIssuesFactory, gitIssues;
+  let diamondCutRepo, diamondCutFactory;
+  let repositoryManagementContract, repositoryManagementFacet;
 
   before(async function(){
     ACCOUNTS = waffle.provider.getWallets();
@@ -33,21 +35,27 @@ describe("Testing Git Issues of Git Repository", function() {
     gitRepositoryManagementFacet = await deployContract("GitRepositoryManagement");
     gitIssuesFacet = await deployContract("GitIssues");
     gitBranchFacet = await deployContract("GitBranch");
+    repositoryManagementFacet = await deployContract("RepositoryManagement");
 
     await gitRepositoryManagementFacet.deployed();
     await gitIssuesFacet.deployed();
     await gitBranchFacet.deployed();
+    await repositoryManagementFacet.deployed();
 
-    diamondCut = [
+    diamondCutRepo = [
         [gitRepositoryManagementFacet.address, getSelectors(gitRepositoryManagementFacet.functions), true],
         [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions), false],
         [gitBranchFacet.address, getSelectors(gitBranchFacet.functions), true]
     ];
 
-    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCut]);
+    diamondCutFactory = [
+        [repositoryManagementFacet.address, getSelectors(repositoryManagementFacet.functions)]
+    ];
+
+    gitRepoContractRegistry = await deployContract("GitRepoContractRegistry",[diamondCutRepo]);
     await gitRepoContractRegistry.deployed();
 
-    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCut]);
+    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCutFactory]);
     await gitFactoryContractRegistry.deployed();
 
     gitFactory = await deployContract("GitFactory", [
@@ -55,9 +63,13 @@ describe("Testing Git Issues of Git Repository", function() {
         gitFactoryContractRegistry.address
     ]);
     await gitFactory.deployed();
-    await gitFactory.createRepository(repoName);
-    const userRepoNameHash = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
-    gitRepositoryLocation = await gitFactory.getRepository(userRepoNameHash);
+
+    repositoryManagementFactory = await hre.ethers.getContractFactory("RepositoryManagement");
+    repositoryManagementContract = await repositoryManagementFactory.attach(gitFactory.address);
+
+    await repositoryManagementContract.createRepository(repoName);
+    const userRepoNameHash = await repositoryManagementContract.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+    gitRepositoryLocation = await repositoryManagementContract.getRepository(userRepoNameHash);
 
     gitIssuesFactory = await hre.ethers.getContractFactory("GitIssues");
     gitIssues = await gitIssuesFactory.attach(gitRepositoryLocation.location);
@@ -410,12 +422,12 @@ describe("Testing Git Issues of Git Repository", function() {
 
         before(async function() {
             const repoName = 'repo_to_be_forked';
-            await gitFactory.createRepository(repoName);
-            const repositoryLocation = await gitFactory.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
+            await repositoryManagementContract.createRepository(repoName);
+            const repositoryLocation = await repositoryManagementContract.getUserRepoNameHash(DEFAULT_ACCOUNT_ADDRESS, repoName);
 
-            await gitFactory.connect(ACCOUNTS[1]).forkRepository(repositoryLocation);
-            const forkedRepositoryLocation = await gitFactory.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
-            let forkedRepoLocation = await gitFactory.getRepository(forkedRepositoryLocation);
+            await repositoryManagementContract.connect(ACCOUNTS[1]).forkRepository(repositoryLocation);
+            const forkedRepositoryLocation = await repositoryManagementContract.getUserRepoNameHash(ACCOUNTS[1].address, repoName);
+            let forkedRepoLocation = await repositoryManagementContract.getRepository(forkedRepositoryLocation);
             forkedIssuesRepo = await gitIssuesFactory.attach(forkedRepoLocation.location);
         });
 

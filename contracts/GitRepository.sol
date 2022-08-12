@@ -39,11 +39,13 @@ contract GitRepository {
     // function if a facet is found and return any value.
     fallback() external payable {
         LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
+
         GitFactory factory = ri.factory;
         GitRepoContractRegistry registry = factory.gitRepoContractRegistry();
-        address facet = registry.getContractAddress(msg.sig, ri.forked);
 
+        address facet = registry.getContractAddress(msg.sig, ri.forked);
         require(facet != address(0), "Diamond: Function does not exist");
+        
         assembly {
             calldatacopy(0, 0, calldatasize())
             let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)
