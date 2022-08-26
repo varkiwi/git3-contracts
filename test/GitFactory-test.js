@@ -86,7 +86,7 @@ describe("Testing GitFactory", function() {
     });
   
     it("Deploy the same GitRepository again, which should fail", async function(){
-      await expect(repositoryManagementContract.createRepository(repoName)).to.be.revertedWith("Repository exists");
+      await expect(repositoryManagementContract.createRepository(repoName)).to.be.revertedWith("Repo exists");
 
       let repositories = await repositoryManagementContract.getRepositoryNames();
       let users = await repositoryManagementContract.getRepositoriesUserList(repoName);
@@ -199,7 +199,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber(),
           repoInfo.repoIndex.toNumber()
         ))
-      .to.be.revertedWith("Repository doesn't exist");
+      .to.be.revertedWith("Repo doesn't exist");
     });
 
     it("Trying to delete a repository using a owner address but wrong user index parameter", async function() {
@@ -210,7 +210,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber() + 1,
           repoInfo.repoIndex.toNumber()
         ))
-      .to.be.revertedWith("User Index value is incorrect");
+      .to.be.revertedWith("User Index value not correct");
     });
 
     it("Trying to delete a repository using a owner address but wrong repo index parameter", async function() {
@@ -221,7 +221,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber(),
           repoInfo.repoIndex.toNumber() + 1
         ))
-      .to.be.revertedWith("Repo Index value is incorrect");
+      .to.be.revertedWith("Repo Index value not correct");
     });
 
     it("Trying to delete a repository using a owner address but wrong user and repo index parameter", async function() {
@@ -232,7 +232,7 @@ describe("Testing GitFactory", function() {
           repoInfo.userIndex.toNumber() + 1,
           repoInfo.repoIndex.toNumber() + 1
         ))
-      .to.be.revertedWith("User Index value is incorrect");
+      .to.be.revertedWith("User Index value not correct");
     });
 
     it("Deleting a repository", async function() {
@@ -389,7 +389,7 @@ describe("Testing GitFactory", function() {
         let repositories = await repositoryManagementContract.getRepositoryNames();
         let users = await repositoryManagementContract.getRepositoriesUserList(repositories[0]);
         const repositoryLocation = await repositoryManagementContract.getUserRepoNameHash(users[0], repositories[0]);
-        await expect(repositoryManagementContract.connect(ACCOUNTS[1]).forkRepository(repositoryLocation)).to.be.revertedWith("Forking impossible. Repository exists already");
+        await expect(repositoryManagementContract.connect(ACCOUNTS[1]).forkRepository(repositoryLocation)).to.be.revertedWith("Fork impossible. Repo exists");
     });
 
     it("Forking repository successful", async function() {
