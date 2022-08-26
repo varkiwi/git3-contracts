@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@pinata/sdk": "^1.1.13",
+    "hardhat-contract-sizer": "^2.6.1",
     "pin-abi": "^1.0.1",
     "web3-eth-abi": "^1.6.0"
   }

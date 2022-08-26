@@ -1,5 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
+require('hardhat-contract-sizer');
+
 const fs = require('fs');
 const { uploadABIToPinata } = require("pin-abi");
 const { task } = require("hardhat/config");
