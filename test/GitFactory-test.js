@@ -302,7 +302,7 @@ describe("Testing GitFactory", function() {
     it("Send ether to gitFactory", async function() {
       const userBalance = await provider.getBalance(DEFAULT_ACCOUNT_ADDRESS);
       const tip = ethers.BigNumber.from(1337);
-      console.log('Factory address', gitFactory.address);
+
       let tx = {
         to: gitFactory.address,
         value: tip.toNumber()
@@ -313,12 +313,10 @@ describe("Testing GitFactory", function() {
       const newUserBalance = await provider.getBalance(DEFAULT_ACCOUNT_ADDRESS);
       const txReceipt = await provider.getTransactionReceipt(receipt.hash);
       
-      console.log('NEW USER BALANCE', newUserBalance);
       expect(factoryBalance).to.be.equal(tip);
       // calculating the used ether for sending the tip and tx costs
       const expectedBalance = userBalance.sub(receipt.gasPrice.mul(txReceipt.cumulativeGasUsed)).sub(tip);
       expect(newUserBalance).to.be.equal(expectedBalance);
-      console.log(await gitFactoryTipsContract.getTips());
     });
 
     it("Collect tips using a non-owner account", async function() {
@@ -334,6 +332,9 @@ describe("Testing GitFactory", function() {
 
       const expectedBalance = userBalance.sub(receipt.gasPrice.mul(txReceipt.cumulativeGasUsed)).add(ethers.BigNumber.from(1337));
       expect(expectedBalance).to.be.equal(newUserBalance);
+
+      const factoryBalance = await provider.getBalance(gitFactory.address);
+      expect(factoryBalance).to.be.equal(0);
     });
   });
 
