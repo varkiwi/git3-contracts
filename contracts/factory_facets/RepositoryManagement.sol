@@ -22,7 +22,7 @@ contract RepositoryManagement {
         LibGitFactory.Repositories storage _repoData = LibGitFactory.repositoriesInformation();
 
         // check if the key has already an active repository
-        require(!_repoData.repositoryList[key].isActive, 'Repository exists');
+        require(!_repoData.repositoryList[key].isActive, 'Repo exists');
         GitRepository newGitRepo = new GitRepository(
             GitRepository.RepositoryArgs({
                 owner: msg.sender,
@@ -51,11 +51,11 @@ contract RepositoryManagement {
         LibGitFactory.Repository storage toBeForkedRepo = _repoData.repositoryList[location];
         //The user provides the location of the repository to be forked.
         // We are checking if it exists in the first place
-        require(toBeForkedRepo.isActive, 'No such repository');
+        require(toBeForkedRepo.isActive, 'No such repo');
         GitRepositoryManagement gitRepo = GitRepositoryManagement(address(_repoData.repositoryList[location].location));
         address owner;
         (owner, , , , , , ,) = gitRepo.getRepositoryInfo();
-        require(owner != msg.sender, "Forking impossible. Repository exists already");
+        require(owner != msg.sender, "Fork impossible. Repo exists");
         
         GitRepository newGitRepo = new GitRepository(
             GitRepository.RepositoryArgs({
@@ -129,13 +129,13 @@ contract RepositoryManagement {
         bytes32 key = getUserRepoNameHash(msg.sender, repoName);
         LibGitFactory.Repositories storage _repoData = LibGitFactory.repositoriesInformation();
         // check if the key has already an active repository
-        require(_repoData.repositoryList[key].isActive, "Repository doesn't exist");
+        require(_repoData.repositoryList[key].isActive, "Repo doesn't exist");
         GitRepositoryManagement repoToDelete = GitRepositoryManagement(address(_repoData.repositoryList[key].location));
         uint _userIndex; 
         uint _repoIndex;
         (, , , _userIndex, _repoIndex, , ,) = repoToDelete.getRepositoryInfo();
-        require(userIndex == _userIndex, "User Index value is incorrect");
-        require(repoIndex == _repoIndex, "Repo Index value is incorrect");
+        require(userIndex == _userIndex, "User Index value not correct");
+        require(repoIndex == _repoIndex, "Repo Index value not correct");
 
         uint256 reposUserListLenght = _repoData.reposUserList[repoName].length;
         if ((userIndex + 1) == reposUserListLenght) {
