@@ -10,7 +10,6 @@ describe("Testing Git Issues of Git Repository", function() {
   const repoName = "TestRepo";
   const issueCid = "Test123";
   const issueBountyCid = "bountyCid";
-  const issueReopenCid = "ReopenCid";
 
   const provider = waffle.provider;
 
@@ -347,10 +346,12 @@ describe("Testing Git Issues of Git Repository", function() {
         it("Closing issue using openers account before block time expires", async function() {
             const issues = await gitIssues.getAllIssues();
             const issueHash = issues[issues.length - 1];
-            const balanceBefore = await provider.getBalance(REPO_OWNER_ACCOUNT.address)
+            const balanceBefore = await provider.getBalance(REPO_OWNER_ACCOUNT.address);
+            
             await gitIssues.connect(OUTSIDER_ACCOUNT).updateIssueState(issueHash, IssueState.Closed);
             const balanceAfter = await provider.getBalance(REPO_OWNER_ACCOUNT.address)
             const issue = await gitIssues.getIssue(issueHash);
+
             expect(issue.bounty).to.be.equal(0);
             expect(issue.state).to.be.equal(IssueState.Closed);
             expect(issue.resolver).to.be.equal(REPO_OWNER_ACCOUNT.address);
@@ -402,10 +403,10 @@ describe("Testing Git Issues of Git Repository", function() {
             const issues = await gitIssues.getAllIssues();
             const issueHash = issues[issues.length - 1];
             await expect(gitIssues.connect(REPO_OWNER_ACCOUNT).updateIssueState(issueHash, IssueState.Closed)).to.be.revertedWith("Can't close the issue");
-            let sendNoTx = 200;
-            for (; sendNoTx > 0; sendNoTx -= 1) {
-                await ACCOUNTS[0].sendTransaction({to: ACCOUNTS[1].address, value: 1});
-            }
+            
+            // mines 604800 blocks, which is roughly 2 weeks time with a block time of Polygon
+            await hre.network.provider.send("hardhat_mine", ["0x93A80"]);
+            
             await gitIssues.connect(REPO_OWNER_ACCOUNT).updateIssueState(issueHash, IssueState.Closed);
             const issue = await gitIssues.getIssue(issueHash);
             expect(issue.bounty).to.be.equal(0);

@@ -142,14 +142,13 @@ contract GitIssues {
                 LibGitRepository.RepositoryInformation storage ri = LibGitRepository.repositoryInformation();
                 uint tips = i.issues[issueHash].bounty;
                 // factory get's 1%
-                (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 20000}('');
-                require(success);
+                (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 20500}('');
+                require(success, "Wasn't able to move tip to factory");
                 //resolver gets's 99%
                 payable(i.issues[issueHash].resolver).transfer(tips * 99 / 100);
                 i.issues[issueHash].bounty = 0;
-            } else if(i.issues[issueHash].state == IssueState.Resolved && 
-                    (block.number - i.issues[issueHash].resolvedBlockNumber) >= 200) 
-                    // (block.number - i.issues[issueHash].resolvedBlockNumber) >= 604800) 
+            } else if(i.issues[issueHash].state == IssueState.Resolved &&  
+                    (block.number - i.issues[issueHash].resolvedBlockNumber) >= 604800) 
             { 
                 i.issues[issueHash].state = state;
                 i.issues[issueHash].resolved = true;
@@ -157,7 +156,7 @@ contract GitIssues {
                 uint tips = i.issues[issueHash].bounty;
                 // factory get's 1%
                 (bool success, ) = address(ri.factory).call{value: tips / 100, gas: 20000}('');
-                require(success);
+                require(success, "Wasn't able to move tip to factory");
                 //resolver gets's 99%
                 payable(i.issues[issueHash].resolver).transfer(tips * 99 / 100);
                 i.issues[issueHash].bounty = 0;
