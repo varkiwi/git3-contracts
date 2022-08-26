@@ -35,7 +35,7 @@ contract RepositoryManagement {
             }
         ));
 
-        addRepository(key, _repoName, newGitRepo);
+        LibGitFactory.addRepository(key, _repoName, newGitRepo);
         emit NewRepositoryCreated(_repoName, msg.sender);
     }
 
@@ -73,43 +73,42 @@ contract RepositoryManagement {
         newGitRepoBranch.readRemoteBranchNamesIntoStorage();
 
         bytes32 newLocation = getUserRepoNameHash(msg.sender, toBeForkedRepo.name);
-        // I guess both contract have to inherit from an abstract class. 
-        addRepository(newLocation, toBeForkedRepo.name, newGitRepo);
+        LibGitFactory.addRepository(newLocation, toBeForkedRepo.name, newGitRepo);
         emit NewRepositoryCreated(toBeForkedRepo.name, msg.sender);
     }
 
-    /**
-     * This function is used to create a new repository. By providing a name, a new 
-     * GitRepository smart contract is deployed.
-     * 
-     * @param key (bytes32) - Hash of user address and repository name
-     * @param repoName (string) - The name of the new repository
-     * @param newGitRepo (GitRepository) - Address of the newly deployed GitRepostory
-     */
-    function addRepository(
-        bytes32 key,
-        string memory repoName,
-        GitRepository newGitRepo
-    ) internal {
-        LibGitFactory.Repositories storage _repoData = LibGitFactory.repositoriesInformation();
+    // /**
+    //  * This function is used to create a new repository. By providing a name, a new 
+    //  * GitRepository smart contract is deployed.
+    //  * 
+    //  * @param key (bytes32) - Hash of user address and repository name
+    //  * @param repoName (string) - The name of the new repository
+    //  * @param newGitRepo (GitRepository) - Address of the newly deployed GitRepostory
+    //  */
+    // function addRepository(
+    //     bytes32 key,
+    //     string memory repoName,
+    //     GitRepository newGitRepo
+    // ) internal {
+    //     LibGitFactory.Repositories storage _repoData = LibGitFactory.repositoriesInformation();
 
-        _repoData.repositoryList[key] = LibGitFactory.Repository({
-            isActive: true,
-            name: repoName,
-            location: newGitRepo
-        });
+    //     _repoData.repositoryList[key] = LibGitFactory.Repository({
+    //         isActive: true,
+    //         name: repoName,
+    //         location: newGitRepo
+    //     });
         
-        // add the repositie's owner to the array
-        _repoData.reposUserList[repoName].push(msg.sender);
-        // and the repository name to the owner's array
-        _repoData.usersRepoList[msg.sender].push(repoName);
+    //     // add the repositie's owner to the array
+    //     _repoData.reposUserList[repoName].push(msg.sender);
+    //     // and the repository name to the owner's array
+    //     _repoData.usersRepoList[msg.sender].push(repoName);
         
-        if (!_repoData.activeRepository[repoName].isActive) {
-            _repoData.activeRepository[repoName].isActive = true;
-            _repoData.activeRepository[repoName].index = _repoData.repositoryNames.length;
-            _repoData.repositoryNames.push(repoName);
-        }
-    }
+    //     if (!_repoData.activeRepository[repoName].isActive) {
+    //         _repoData.activeRepository[repoName].isActive = true;
+    //         _repoData.activeRepository[repoName].index = _repoData.repositoryNames.length;
+    //         _repoData.repositoryNames.push(repoName);
+    //     }
+    // }
 
     /**
      * Used to remove a repository from the internal 'database'. It takes the owner of the repository, the repository name,

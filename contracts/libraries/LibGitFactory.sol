@@ -78,4 +78,38 @@ library LibGitFactory {
             fi.slot := position
         }
     }
+
+    /**
+     * This function is used to create a new repository. By providing a name, a new 
+     * GitRepository smart contract is deployed.
+     * 
+     * @param key (bytes32) - Hash of user address and repository name
+     * @param repoName (string) - The name of the new repository
+     * @param newGitRepo (GitRepository) - Address of the newly deployed GitRepostory
+     */
+    function addRepository(
+        bytes32 key,
+        string memory repoName,
+        GitRepository newGitRepo
+    ) internal {
+        // LibGitFactory.Repositories storage _repoData = LibGitFactory.repositoriesInformation();
+        Repositories storage _repoData = repositoriesInformation();
+
+        _repoData.repositoryList[key] = LibGitFactory.Repository({
+            isActive: true,
+            name: repoName,
+            location: newGitRepo
+        });
+        
+        // add the repositie's owner to the array
+        _repoData.reposUserList[repoName].push(msg.sender);
+        // and the repository name to the owner's array
+        _repoData.usersRepoList[msg.sender].push(repoName);
+        
+        if (!_repoData.activeRepository[repoName].isActive) {
+            _repoData.activeRepository[repoName].isActive = true;
+            _repoData.activeRepository[repoName].index = _repoData.repositoryNames.length;
+            _repoData.repositoryNames.push(repoName);
+        }
+    }
 }
