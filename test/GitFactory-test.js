@@ -310,10 +310,12 @@ describe("Testing GitFactory", function() {
       let receipt = await ACCOUNTS[0].sendTransaction(tx);
 
       const factoryBalance = await provider.getBalance(gitFactory.address);
+      const factoryBalanceFromMethod = await gitFactoryTipsContract.getTips();
       const newUserBalance = await provider.getBalance(DEFAULT_ACCOUNT_ADDRESS);
       const txReceipt = await provider.getTransactionReceipt(receipt.hash);
       
       expect(factoryBalance).to.be.equal(tip);
+      expect(factoryBalanceFromMethod).to.be.equal(tip);
       // calculating the used ether for sending the tip and tx costs
       const expectedBalance = userBalance.sub(receipt.gasPrice.mul(txReceipt.cumulativeGasUsed)).sub(tip);
       expect(newUserBalance).to.be.equal(expectedBalance);
