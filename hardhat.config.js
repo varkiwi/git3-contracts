@@ -26,7 +26,6 @@ function readPrivateKey(name) {
     const data = fs.readFileSync(`secrets/${name}`, 'utf8');
     return data;
   } catch (err) {
-    console.error(err.message);
     return '0x0000000000000000000000000000000000000000000000000000000000000000';
   }
 }

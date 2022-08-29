@@ -1,9 +1,13 @@
 {
     "files": [
-        "facets/GitBranch.sol",
-        "facets/GitIssues.sol",
-        "facets/GitRepositoryManagement.sol",
-        "facets/GitTips.sol",
+        "factory_facets/GitFactoryTips.sol",
+        "factory_facets/RepositoryManagement.sol",
+        "registries/GitFactoryContractRegistry.sol",
+        "registries/GitRepoContractRegistry.sol",
+        "repo_facets/GitBranch.sol",
+        "repo_facets/GitIssues.sol",
+        "repo_facets/GitRepositoryManagement.sol",
+        "repo_facets/GitTips.sol",
         "GitFactory.sol",
         "GitRepository.sol"
     ]
