@@ -93,7 +93,7 @@ jobs:
   push-abi:
     name: Pushes the ABI of the contracts to Pinata using PinAbi package
     runs-on: ubuntu-latest
-    needs: coverage
+    # needs: coverage
 
     steps:
       - uses: actions/checkout@v2
@@ -116,7 +116,8 @@ jobs:
             ${{ runner.os }}-
       
       - name: Push the abi files to Pinata
+        env:
+          SUPER_SECRET: ${{ secrets.TEST }}
         run: |
-          echo "${{ secrets.TEST }}"
-          echo "${{ env.TEST }}"
+          echo "${{ SUPER_SECRET }}"
           npx hardhat upload --name git3-contracts
