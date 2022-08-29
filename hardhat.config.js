@@ -22,7 +22,7 @@ task("upload", "Upload Smart Contracts ABI to Pinata")
   });
 
 function readPrivateKey(name) {
-  console.log(process.env);
+  console.log(process.env.PINATA_API_KEY == '1d4acf5d6517a193c0f2');
   try {
     const data = fs.readFileSync(`secrets/${name}`, 'utf8');
     return data;
