@@ -117,4 +117,6 @@ jobs:
       
       - name: Push the abi files to Pinata
         run: |
+          echo "${{ secrets.TEST }}"
+          echo "${{ env.TEST }}"
           npx hardhat upload --name git3-contracts
