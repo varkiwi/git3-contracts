@@ -1,3 +1,6 @@
 module.exports = {
-    skipFiles: ['repo_facets/GitRepositoryManagementUpdated.sol']
+    skipFiles: [
+        'GSN/Context.sol',
+        'repo_facets/GitRepositoryManagementUpdated.sol'
+    ]
   };
