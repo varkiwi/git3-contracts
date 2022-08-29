@@ -2,9 +2,9 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "./Ownable.sol";
+import "../Ownable.sol";
 
-contract GitContractRegistry is Ownable {
+contract GitRepoContractRegistry is Ownable {
     struct Index {
         bool isActive;
         uint256 index;

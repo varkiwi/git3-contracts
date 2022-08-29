@@ -46,12 +46,12 @@ async function main() {
       [gitTipsFacet.address, getSelectors(gitTipsFacet.functions)]
     ];
 
-    const gitContractRegistry = await deployContract("GitContractRegistry", [diamondCut, ]);
-    await gitContractRegistry.deployed();
-    console.log("GitContractRegistry's address is:", gitContractRegistry.address);
+    const gitRepoContractRegistry = await deployContract("GitRepoContractRegistry", [diamondCut, ]);
+    await gitRepoContractRegistry.deployed();
+    console.log("GitRepoContractRegistry's address is:", gitRepoContractRegistry.address);
 
 
-    const gitFactory = await deployContract("GitFactory", [gitContractRegistry.address]);
+    const gitFactory = await deployContract("GitFactory", [gitRepoContractRegistry.address]);
     await gitFactory.deployed();
     console.log("GitFactory's address:", gitFactory.address);
   }
