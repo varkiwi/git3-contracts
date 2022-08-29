@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - main
+
 jobs:
   setup:
     name: Setup environment
@@ -88,3 +89,32 @@ jobs:
           npx hardhat coverage > result
           cat result
           if (( $(cat result | grep 'All files' | cut -d "|" -f 2 | cut -d "." -f 1) >= 90 )); then echo "Coverage is good"; else echo "Coverage not enough"; exit 1; fi
+
+  push-abi:
+    name: Pushes the ABI of the contracts to Pinata using PinAbi package
+    runs-on: ubuntu-latest
+    needs: coverage
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      
+      - name: Push the abi files to Pinata
+        run: |
+          npx hardhat upload --name git3-contracts
