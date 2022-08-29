@@ -120,4 +120,5 @@ jobs:
           PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
           PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
         run: |
+          echo $PINATA_API_KEY
           npx hardhat upload --name git3-contracts
