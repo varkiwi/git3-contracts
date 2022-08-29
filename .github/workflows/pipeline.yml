@@ -119,5 +119,5 @@ jobs:
         env:
           SUPER_SECRET: ${{ secrets.TEST }}
         run: |
-          echo "${{ SUPER_SECRET }}"
+          echo $SUPER_SECRET
           npx hardhat upload --name git3-contracts
