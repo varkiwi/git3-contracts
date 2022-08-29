@@ -117,7 +117,7 @@ jobs:
       
       - name: Push the abi files to Pinata
         env:
-          SUPER_SECRET: ${{ secrets.TEST }}
+          PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
+          PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
         run: |
-          echo $SUPER_SECRET
           npx hardhat upload --name git3-contracts
