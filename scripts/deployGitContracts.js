@@ -38,20 +38,40 @@ async function main() {
     console.log("GitIssuesFacet's address is:", gitIssuesFacet.address);
     console.log("GitTipsFacet's address is:", gitTipsFacet.address);
     
-
     const diamondCut = [
-      [gitRepoManagementFacet.address, getSelectors(gitRepoManagementFacet.functions)],
-      [gitBranchFacet.address, getSelectors(gitBranchFacet.functions)],
-      [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions)],
-      [gitTipsFacet.address, getSelectors(gitTipsFacet.functions)]
+      [gitRepoManagementFacet.address, getSelectors(gitRepoManagementFacet.functions), true],
+      [gitBranchFacet.address, getSelectors(gitBranchFacet.functions), true],
+      [gitIssuesFacet.address, getSelectors(gitIssuesFacet.functions), false],
+      [gitTipsFacet.address, getSelectors(gitTipsFacet.functions), false]
     ];
 
     const gitRepoContractRegistry = await deployContract("GitRepoContractRegistry", [diamondCut, ]);
     await gitRepoContractRegistry.deployed();
     console.log("GitRepoContractRegistry's address is:", gitRepoContractRegistry.address);
 
+    const repositoryManagementFacet = await deployContract("RepositoryManagement");
+    const gitFactoryTips = await deployContract("GitFactoryTips");
 
-    const gitFactory = await deployContract("GitFactory", [gitRepoContractRegistry.address]);
+    await repositoryManagementFacet.deployed();
+    await gitFactoryTips.deployed();
+
+    console.log("RepositoryManagement's address is:", repositoryManagementFacet.address);
+    console.log("GitFactoryTips's address is:", gitFactoryTips.address);
+
+    const diamondCutFactory = [
+        [repositoryManagementFacet.address, getSelectors(repositoryManagementFacet.functions)],
+        [gitFactoryTips.address, getSelectors(gitFactoryTips.functions)],
+    ]
+
+    gitFactoryContractRegistry = await deployContract("GitFactoryContractRegistry",[diamondCutFactory]);
+    await gitFactoryContractRegistry.deployed();
+    console.log("GitFactoryContractRegistry's address is:", gitRepoContractRegistry.address);
+
+    const gitFactory = await deployContract("GitFactory", [
+        gitRepoContractRegistry.address,
+        gitFactoryContractRegistry.address
+    ]);
+
     await gitFactory.deployed();
     console.log("GitFactory's address:", gitFactory.address);
   }
