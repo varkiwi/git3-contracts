@@ -419,5 +419,21 @@ describe("Testing GitFactory", function() {
         expect(repoInfo.forkOrigin).to.be.equal(originRepository.location);
         expect(await gitFork.getBranchNames()).to.be.deep.equal(await gitOrigin.getBranchNames());
     });
+
+    it("Forking repository 2nd time unsuccessful", async function() {
+        const gitRepoManagement = await ethers.getContractFactory("GitRepositoryManagement");
+
+        let repositories = await repositoryManagementContract.getRepositoryNames();
+        let users = await repositoryManagementContract.getRepositoriesUserList(repositories[0]);
+        const repositoryLocation = await repositoryManagementContract.getUserRepoNameHash(users[0], repositories[0]);
+
+        const originRepository = await repositoryManagementContract.getRepository(repositoryLocation);
+        const gitOrigin = await gitBranchFactory.attach(originRepository.location);
+
+        await gitOrigin.connect(ACCOUNTS[1]).push('master', 'Test123');
+        await gitOrigin.connect(ACCOUNTS[1]).push('doodle', 'Test123');
+
+        await expect(repositoryManagementContract.forkRepository(repositoryLocation)).to.be.revertedWith("Already forked");
+    });
   });
 });

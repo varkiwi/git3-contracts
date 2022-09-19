@@ -47,6 +47,13 @@ contract RepositoryManagement {
         LibGitFactory.Repositories storage _repoData = LibGitFactory.repositoriesInformation();
 
         LibGitFactory.Repository storage toBeForkedRepo = _repoData.repositoryList[location];
+        bytes32 newLocation = getUserRepoNameHash(msg.sender, toBeForkedRepo.name);
+        // if a different user tries to fork a repository
+        if (location != newLocation) {
+            // we check if they forked already in the past
+            require(!_repoData.repositoryList[newLocation].isActive, 'Already forked');
+        }
+        
         //The user provides the location of the repository to be forked.
         // We are checking if it exists in the first place
         require(toBeForkedRepo.isActive, 'No such repo');
@@ -70,7 +77,7 @@ contract RepositoryManagement {
         GitBranch newGitRepoBranch = GitBranch(address(newGitRepo));
         newGitRepoBranch.readRemoteBranchNamesIntoStorage();
 
-        bytes32 newLocation = getUserRepoNameHash(msg.sender, toBeForkedRepo.name);
+        // bytes32 newLocation = getUserRepoNameHash(msg.sender, toBeForkedRepo.name);
         LibGitFactory.addRepository(newLocation, toBeForkedRepo.name, newGitRepo);
         emit NewRepositoryCreated(toBeForkedRepo.name, msg.sender);
     }

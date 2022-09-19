@@ -92,7 +92,6 @@ library LibGitFactory {
         string memory repoName,
         GitRepository newGitRepo
     ) internal {
-        // LibGitFactory.Repositories storage _repoData = LibGitFactory.repositoriesInformation();
         Repositories storage _repoData = repositoriesInformation();
 
         _repoData.repositoryList[key] = LibGitFactory.Repository({
