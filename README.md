@@ -19,9 +19,9 @@ Here are the addresses for Polygon Mumbai:
     * GitTipsFacet's address is:            0xE8727949fC7607a58d87b7397B15e0a5fDC7050b
     * GitRepoContractRegistry's address is: 0xBdE9C89C79435514e840660e35D7D60d91a60BcD
 
-    * RepositoryManagement's address is:       0x133859F177BE44755Dd5102AA57d75ac24AE2318
+    * RepositoryManagement's address is:       0xEb43C0546b712B2D07EaCa1b007a64fA8bF4A31D
     * GitFactoryTips's address is:             0x7d101a12d6Ad0e4c88318a92e62A78B91040F8E0
-    * GitFactoryContractRegistry's address is: 0xBdE9C89C79435514e840660e35D7D60d91a60BcD
+    * GitFactoryContractRegistry's address is: 0x5adD82e550881e361AE034b4a351B92c71a8181a
     * GitFactory's address is:                 0x289C243B54dCe04945176Bb00Beaa3DCf53B3C1d
 
 Here are the addresses for Nervo's Godwoken v1:
@@ -32,9 +32,9 @@ Here are the addresses for Nervo's Godwoken v1:
     * GitTipsFacet's address is:            0x82867391d5C280A09B16d1d2C84ab83Fc0995BcB
     * GitRepoContractRegistry's address is: 0xc6289F7fa0dA125B2FFA932c9A655a99a5427073
 
-    * RepositoryManagement's address is:       0xb9D184a98557B92EB25583697DdCB6ed5Ec8Ed3d
+    * RepositoryManagement's address is:       0xf7412EBBA50F432Fc7B6DD5EF097861cd94036f7
     * GitFactoryTips's address is:             0xCDd06C17354d0697E6d22E3941390a7cCFc591A7
-    * GitFactoryContractRegistry's address is: 0xc6289F7fa0dA125B2FFA932c9A655a99a5427073
+    * GitFactoryContractRegistry's address is: 0x3310b4e95a98D3418fBD75304cf3853f0a7A124f
     * GitFactory's address is:                 0x4DBF5e2d170d513dE734294Db921808957Ffe92d
 
 In case you want to download the abis, here is the CID: `QmYBw83oKD3YDSeC2MyVDS3a3E5zbej6Z9iDQd185zABsk`
